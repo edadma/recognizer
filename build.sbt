@@ -1,9 +1,9 @@
 ThisBuild / licenses += "ISC" -> url("https://opensource.org/licenses/ISC")
 ThisBuild / versionScheme := Some("semver-spec")
 
-lazy val cross_template = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
+lazy val recognizer = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
   settings(
-    name := "-cross-template",
+    name := "recognizer",
     version := "0.1.0",
     scalaVersion := "2.13.6",
     scalacOptions ++=
@@ -18,6 +18,7 @@ lazy val cross_template = crossProject(JSPlatform, JVMPlatform, NativePlatform).
     mainClass := Some(s"${organization.value}.${name.value}.Main"),
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.9" % "test",
     libraryDependencies += "io.github.edadma" %%% "cross-platform" % "0.1.1",
+    libraryDependencies += "com.lihaoyi" %%% "pprint" % "0.6.6",
     publishMavenStyle := true,
     Test / publishArtifact := false,
     licenses += "ISC" -> url("https://opensource.org/licenses/ISC")
