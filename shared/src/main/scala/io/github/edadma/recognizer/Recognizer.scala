@@ -41,7 +41,12 @@ trait Recognizer[E] {
         list
     }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
 
-//  def rep(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+  def rep(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+    push(new ListBuffer[Any]) ~ rep(p ~ transform(arity)(f) ~ transform(2) {
+      case Seq(list: ListBuffer[Any], item) =>
+        list += item
+        list
+    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
 
   def push(v: Any): Pattern = Push(v)
 
