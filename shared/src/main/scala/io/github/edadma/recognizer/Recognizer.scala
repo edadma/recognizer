@@ -7,7 +7,7 @@ import scala.language.{implicitConversions, postfixOps}
 
 trait Recognizer[E] {
 
-  type I <: Input[E]
+  type I = Input[E]
 
   implicit def elem(e: E): Pattern = Elem(e)
 
@@ -70,10 +70,11 @@ trait Recognizer[E] {
   private case class Transform(arity: Int, f: Seq[Any] => Any) extends Pattern
   private case class NonStrict(p: () => Pattern) extends Pattern
 
+  case class Choice(input: I, pattern: Pattern, call: List[Pattern])
+
   var runlimit: Int = Int.MaxValue
 
-  def run[I <: Input[E]](input: I, pat: Pattern): Option[(Option[Any], I)] = {
-    case class Choice(input: I, pattern: Pattern, call: List[Pattern])
+  def run(input: I, pat: Pattern): Option[(Option[Any], I, mutable.Stack[Choice])] = {
     var call: List[Pattern] = Nil
     val choice = new mutable.Stack[Choice]
     val value = new mutable.Stack[Any]
@@ -157,7 +158,7 @@ trait Recognizer[E] {
         true
     }
 
-    if (run) Some((value.headOption, pointer))
+    if (run) Some((value.headOption, pointer, choice))
     else None
   }
 

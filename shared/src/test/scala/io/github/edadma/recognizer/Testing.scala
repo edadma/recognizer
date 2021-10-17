@@ -1,5 +1,7 @@
 package io.github.edadma.recognizer
 
+import scala.collection.mutable
+
 trait Testing extends Recognizer[Char] {
 
   var pattern: Pattern = _
@@ -11,15 +13,15 @@ trait Testing extends Recognizer[Char] {
 
     def next: StringInput = new StringInput(s, idx + 1)
 
-    def rest: String = s.substring(idx)
+    def rest: List[Char] = s.substring(idx).toList
 
     override def toString: String = s"StringInput<$rest>"
   }
 
-  def parse(s: String, p: Pattern): Option[(Option[Any], String)] = {
+  def parse(s: String, p: Pattern): Option[(Option[Any], String, mutable.Stack[Choice])] = {
     pattern = p
     run(new StringInput(s), pattern) map {
-      case (v, r) => (v, r.rest)
+      case (v, r, c) => (v, r.rest.mkString, c)
     }
   }
 

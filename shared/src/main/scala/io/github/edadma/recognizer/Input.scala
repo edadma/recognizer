@@ -6,6 +6,7 @@ trait Input[E] {
   def eoi: Boolean
   def elem: E
   def next: Input[E]
+  def rest: List[E]
 
   def list(end: Input[E]): Option[List[E]] = {
     val buf = new ListBuffer[E]
