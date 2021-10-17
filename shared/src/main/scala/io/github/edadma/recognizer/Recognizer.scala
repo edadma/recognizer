@@ -7,6 +7,8 @@ import scala.language.{implicitConversions, postfixOps}
 
 trait Recognizer[E] {
 
+  type I <: Input[E]
+
   implicit def elem(e: E): Pattern = Elem(e)
 
   def nop: Pattern = Nop
@@ -28,15 +30,15 @@ trait Recognizer[E] {
 
   def rep1(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     push(new ListBuffer[Any]) ~ rep1(p ~ transform(arity)(f) ~ transform(2) {
-      case Seq(list: ListBuffer[Any], item) =>
-        list += item
+      case Seq(list: ListBuffer[_], item) =>
+        list.asInstanceOf[ListBuffer[Any]] += item
         list
     }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
 
   def rep(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     push(new ListBuffer[Any]) ~ rep(p ~ transform(arity)(f) ~ transform(2) {
-      case Seq(list: ListBuffer[Any], item) =>
-        list += item
+      case Seq(list: ListBuffer[_], item) =>
+        list.asInstanceOf[ListBuffer[Any]] += item
         list
     }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
 
@@ -44,10 +46,14 @@ trait Recognizer[E] {
 
   def pointer: Pattern = Pointer
 
-//  def capture(p: Pattern): Pattern =
-//    pointer ~ p ~ pointer ~ (transform(2) {
-//      case Seq(start, end) =>
-//    })
+  def capture(p: Pattern): Pattern =
+    pointer ~ p ~ pointer ~ transform(2) {
+      case Seq(start, end) =>
+        start.asInstanceOf[I].list(end.asInstanceOf[I]) match {
+          case Some(value) => push(value)
+          case None        => sys.error("something bad happened")
+        }
+    }
 
   def transform(arity: Int)(f: Seq[Any] => Any): Pattern = Transform(arity, f)
 
