@@ -9,4 +9,16 @@ class BasicTests extends AnyFreeSpec with Matchers with Testing {
     parse("a", 'a') shouldBe Some((None, ""))
   }
 
+  "basic 2" in {
+    parse("ab", 'a') shouldBe Some((None, "b"))
+  }
+
+  "basic 3" in {
+    parse("b", 'a') shouldBe None
+  }
+
+  "basic 4" in {
+    parse("", 'a') shouldBe None
+  }
+
 }

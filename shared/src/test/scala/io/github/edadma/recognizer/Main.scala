@@ -1,16 +1,10 @@
 package io.github.edadma.recognizer
 
-import scala.annotation.tailrec
-import scala.language.{implicitConversions, postfixOps}
-import scala.collection.mutable
 import pprint._
 
 object Main extends App with Testing {
 
-//    val pattern = Seq(Elem('a'), Seq(Alt(Elem('b'), Elem('d')), Elem('c')))
-//    val pattern = Elem('a')
-//    val pattern = Alt(Elem('a'), Elem('b'))
-
-  println(parse("adc", 'a' ~ ('b' | 'd' ~ opt('e')) ~ 'c'))
+//  println(parse("adc", 'a' ~ ('b' | 'd' ~ opt('e')) ~ 'c'))
+  println(parse("b", 'a'))
 
 }
