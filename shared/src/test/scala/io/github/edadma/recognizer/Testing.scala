@@ -2,11 +2,11 @@ package io.github.edadma.recognizer
 
 import scala.collection.mutable
 
-trait Testing extends Recognizer[Char] {
+trait Testing extends CharRecognizer {
 
   var pattern: Pattern = _
 
-  class StringInput(s: String, idx: Int = 0) extends Input[Char] {
+  case class StringInput(s: String, idx: Int = 0) extends Input[Char] {
     def eoi: Boolean = idx >= s.length
 
     def elem: Char = s(idx)
@@ -15,13 +15,13 @@ trait Testing extends Recognizer[Char] {
 
     def rest: List[Char] = s.substring(idx).toList
 
-    override def toString: String = s"StringInput<$rest>"
+    override def toString: String = s"StringInput<${rest.mkString(", ")}>"
   }
 
-  def parse(s: String, p: Pattern): Option[(Option[Any], String, mutable.Stack[Choice])] = {
+  def parse(s: String, p: Pattern): Option[(Option[Any], String)] = {
     pattern = p
     run(new StringInput(s), pattern) map {
-      case (v, r, c) => (v, r.rest.mkString, c)
+      case (v, r) => (v, r.rest.mkString)
     }
   }
 

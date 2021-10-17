@@ -9,7 +9,17 @@ trait Recognizer[E] {
 
   type I = Input[E]
 
-  implicit def elem(e: E): Pattern = Elem(e)
+  implicit def elem(e: E): Pattern = Clas(_ == e)
+
+  def seq(es: E*): Pattern = Match(es)
+
+  def clas(c: E => Boolean): Pattern = Clas(c)
+
+  def anyOf(es: E*): Pattern = clas(es contains _)
+
+  def noneOf(es: E*): Pattern = clas(e => !(es contains e))
+
+  def any: Pattern = clas(_ => true)
 
   def nop: Pattern = Nop
 
@@ -60,21 +70,22 @@ trait Recognizer[E] {
     def |(that: Pattern): Pattern = Alternative(this, that)
   }
 
-  private case object Nop extends Pattern
-  private case object Fail extends Pattern
-  private case object Pointer extends Pattern
-  private case class Sequence(p: Pattern, q: Pattern) extends Pattern
-  private case class Alternative(p: Pattern, q: Pattern) extends Pattern
-  private case class Elem(e: E) extends Pattern
-  private case class Push(v: Any) extends Pattern
-  private case class Transform(arity: Int, f: Seq[Any] => Any) extends Pattern
-  private case class NonStrict(p: () => Pattern) extends Pattern
+  protected case object Nop extends Pattern
+  protected case object Fail extends Pattern
+  protected case object Pointer extends Pattern
+  protected case class Sequence(p: Pattern, q: Pattern) extends Pattern
+  protected case class Alternative(p: Pattern, q: Pattern) extends Pattern
+  protected case class Clas(c: E => Boolean) extends Pattern
+  protected case class Match(e: Seq[E]) extends Pattern
+  protected case class Push(v: Any) extends Pattern
+  protected case class Transform(arity: Int, f: Seq[Any] => Any) extends Pattern
+  protected case class NonStrict(p: () => Pattern) extends Pattern
 
-  case class Choice(input: I, pattern: Pattern, call: List[Pattern])
+  protected case class Choice(input: I, pattern: Pattern, call: List[Pattern])
 
   var runlimit: Int = Int.MaxValue
 
-  def run(input: I, pat: Pattern): Option[(Option[Any], I, mutable.Stack[Choice])] = {
+  def run(input: I, pat: Pattern): Option[(Option[Any], I)] = {
     var call: List[Pattern] = Nil
     val choice = new mutable.Stack[Choice]
     val value = new mutable.Stack[Any]
@@ -125,9 +136,19 @@ trait Recognizer[E] {
             choice push Choice(pointer, q, call)
             push(p)
             run
-          case Elem(e) =>
-            if (!pointer.eoi && pointer.elem == e) {
-              pointer = pointer.next.asInstanceOf[I]
+          case Match(s) =>
+            val it = s.iterator
+
+            while (it.hasNext && !pointer.eoi && pointer.elem == it.next) {
+              pointer = pointer.next
+            }
+
+            if (!it.hasNext) run
+            else if (backtrack) run
+            else false
+          case Clas(c) =>
+            if (!pointer.eoi && c(pointer.elem)) {
+              pointer = pointer.next
               run
             } else if (backtrack) run
             else false
@@ -158,7 +179,7 @@ trait Recognizer[E] {
         true
     }
 
-    if (run) Some((value.headOption, pointer, choice))
+    if (run) Some((value.headOption, pointer))
     else None
   }
 

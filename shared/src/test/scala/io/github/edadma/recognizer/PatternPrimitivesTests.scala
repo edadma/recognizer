@@ -49,12 +49,20 @@ class PatternPrimitivesTests extends AnyFreeSpec with Matchers with Testing {
     parse("asdf", rep('a' ~ 'b')) shouldBe Some((None, "asdf"))
   }
 
-  "rep 9" in {
+  "rep1 1" in {
     parse("abababasdf", rep1('a' ~ 'b')) shouldBe Some((None, "asdf"))
   }
 
-  "rep 10" in {
+  "rep1 2" in {
     parse("asdf", rep1('a' ~ 'b')) shouldBe None
+  }
+
+  "string 1" in {
+    parse("abcd", 'a' ~ string("bc" | 'e') ~ 'd') shouldBe Some((Some("bc"), ""))
+  }
+
+  "string 2" in {
+    parse("aed", 'a' ~ string("bc" | 'e') ~ 'd') shouldBe Some((Some("e"), ""))
   }
 
 }
