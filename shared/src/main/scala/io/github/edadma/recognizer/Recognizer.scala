@@ -17,6 +17,14 @@ trait Recognizer[E] {
   def opt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     p ~ transform(arity)(args => Some(f(args))) | nop ~ push(None)
 
+  def rep(p: Pattern): Pattern = {
+    lazy val pat: Pattern = opt(p ~ NonStrict(() => pat))
+
+    pat
+  }
+
+  def rep1(p: Pattern): Pattern = p ~ rep(p)
+
   def push(v: Any): Pattern = Push(v)
 
   def pointer: Pattern = Pointer
@@ -41,6 +49,7 @@ trait Recognizer[E] {
   private case class Elem(e: E) extends Pattern
   private case class Push(v: Any) extends Pattern
   private case class Transform(arity: Int, f: Seq[Any] => Any) extends Pattern
+  private case class NonStrict(p: () => Pattern) extends Pattern
 
   var runlimit: Int = Int.MaxValue
 
@@ -70,7 +79,7 @@ trait Recognizer[E] {
     def backtrack: Boolean = {
       debug(s"backtrack $choice")
       if (choice.nonEmpty) {
-        val Choice(p, n, c) = choice.pop
+        val Choice(p, n, c) = choice.pop()
 
         pointer = p
         call = n :: c
@@ -118,6 +127,9 @@ trait Recognizer[E] {
             else false
           case Pointer =>
             value push pointer
+            run
+          case NonStrict(p) =>
+            push(p())
             run
         }
       } else

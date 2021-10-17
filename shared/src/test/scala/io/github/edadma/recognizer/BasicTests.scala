@@ -81,4 +81,40 @@ class BasicTests extends AnyFreeSpec with Matchers with Testing {
     parse("", (elem('a') | 'c') ~ 'b') shouldBe None
   }
 
+  "basic 14" in {
+    parse("ab", 'a' ~ (elem('b') | 'c')) shouldBe Some((None, ""))
+  }
+
+  "basic 15" in {
+    parse("abd", 'a' ~ (elem('b') | 'c')) shouldBe Some((None, "d"))
+  }
+
+  "basic 16" in {
+    parse("acd", 'a' ~ (elem('b') | 'c')) shouldBe Some((None, "d"))
+  }
+
+  "basic 17" in {
+    parse("ad", 'a' ~ (elem('b') | 'c')) shouldBe None
+  }
+
+  "basic 18" in {
+    parse("xb", 'a' ~ (elem('b') | 'c')) shouldBe None
+  }
+
+  "basic 19" in {
+    parse("xc", 'a' ~ (elem('b') | 'c')) shouldBe None
+  }
+
+  "basic 20" in {
+    parse("a", 'a' ~ (elem('b') | 'c')) shouldBe None
+  }
+
+  "basic 21" in {
+    parse("", 'a' ~ (elem('b') | 'c')) shouldBe None
+  }
+
+  "basic 22" in {
+    parse("ab", 'a' ~ 'b' | 'c') shouldBe Some((None, ""))
+  }
+
 }
