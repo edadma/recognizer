@@ -12,6 +12,17 @@ abstract class Recognizer[E, V] {
 
   def success: Nop.type = Nop
 
+  def push(v: V): Push = Push(v)
+
+  def pointer: Pointer.type = Pointer
+
+  def capture(p: Pattern): Pattern =
+    pointer ~ p ~ pointer ~ (transform(2) {
+      case Seq(start, end) =>
+    })
+
+  def transform(arity: Int)(f: Seq[V] => V): Transform = Transform(arity, f)
+
   trait Pattern {
     def ~(that: Pattern): Sequence = Sequence(this, that)
     def |(that: Pattern): Alternative = Alternative(this, that)
@@ -19,11 +30,12 @@ abstract class Recognizer[E, V] {
   }
 
   case object Nop extends Pattern
+  case object Pointer extends Pattern
   case class Sequence(p: Pattern, q: Pattern) extends Pattern
   case class Alternative(p: Pattern, q: Pattern) extends Pattern
   case class Elem(e: E) extends Pattern
   case class Push(v: V) extends Pattern
-  case class Transform(argc: Int, f: Seq[V] => V) extends Pattern
+  case class Transform(arity: Int, f: Seq[V] => V) extends Pattern
   case class Opt(p: Pattern) extends Pattern
 
   def parse(input: Input[E], pat: Pattern): Option[(Option[V], Input[E])] = {
@@ -80,12 +92,15 @@ abstract class Recognizer[E, V] {
           case Push(v) =>
             value push v
             parse()
-          //          case Transform(argc, f) =>
+          case Transform(arity, f) =>
+            value push f(value.take(arity).reverse.toList)
+            parse()
           case Sequence(p, q) =>
             push(q)
             push(p)
             parse()
-          case Nop => parse()
+          case Nop     => parse()
+          case Pointer => value push pointer
         }
       } else
         true
