@@ -48,11 +48,7 @@ trait Recognizer[E] {
 
   def capture(p: Pattern): Pattern =
     pointer ~ p ~ pointer ~ transform(2) {
-      case Seq(start, end) =>
-        start.asInstanceOf[I].list(end.asInstanceOf[I]) match {
-          case Some(value) => push(value)
-          case None        => sys.error("something bad happened")
-        }
+      case Seq(start, end) => start.asInstanceOf[I].list(end.asInstanceOf[I]).get
     }
 
   def transform(arity: Int)(f: Seq[Any] => Any): Pattern = Transform(arity, f)
