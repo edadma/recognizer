@@ -1,12 +1,11 @@
 package io.github.edadma.recognizer
 
-import org.scalatest._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 
-class Tests extends AnyFreeSpec with Matchers {
+class BasicTests extends AnyFreeSpec with Matchers {
 
-  "test" in {
+  "basic 1" in {
     List(1, 2, 3) mkString "\n" shouldBe
       """
         |1

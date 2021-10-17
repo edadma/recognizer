@@ -4,46 +4,51 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.language.{implicitConversions, postfixOps}
 
-abstract class Recognizer[E, V] {
+trait Recognizer[E] {
 
-  implicit def elem(e: E): Elem = Elem(e)
+  implicit def elem(e: E): Pattern = Elem(e)
 
-  def opt(p: Pattern): Opt = Opt(p)
+  def nop: Pattern = Nop
 
-  def success: Nop.type = Nop
+  def fail: Pattern = Fail
 
-  def push(v: V): Push = Push(v)
+  def opt(p: Pattern): Pattern = p | nop
 
-  def pointer: Pointer.type = Pointer
+  def opt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+    p ~ transform(arity)(args => Some(f(args))) | nop ~ push(None)
 
-  def capture(p: Pattern): Pattern =
-    pointer ~ p ~ pointer ~ (transform(2) {
-      case Seq(start, end) =>
-    })
+  def push(v: Any): Pattern = Push(v)
 
-  def transform(arity: Int)(f: Seq[V] => V): Transform = Transform(arity, f)
+  def pointer: Pattern = Pointer
+
+//  def capture(p: Pattern): Pattern =
+//    pointer ~ p ~ pointer ~ (transform(2) {
+//      case Seq(start, end) =>
+//    })
+
+  def transform(arity: Int)(f: Seq[Any] => Any): Pattern = Transform(arity, f)
 
   trait Pattern {
-    def ~(that: Pattern): Sequence = Sequence(this, that)
-    def |(that: Pattern): Alternative = Alternative(this, that)
-    def ? : Opt = Opt(this)
+    def ~(that: Pattern): Pattern = Sequence(this, that)
+    def |(that: Pattern): Pattern = Alternative(this, that)
   }
 
-  case object Nop extends Pattern
-  case object Pointer extends Pattern
-  case class Sequence(p: Pattern, q: Pattern) extends Pattern
-  case class Alternative(p: Pattern, q: Pattern) extends Pattern
-  case class Elem(e: E) extends Pattern
-  case class Push(v: V) extends Pattern
-  case class Transform(arity: Int, f: Seq[V] => V) extends Pattern
-  case class Opt(p: Pattern) extends Pattern
+  private case object Nop extends Pattern
+  private case object Fail extends Pattern
+  private case object Pointer extends Pattern
+  private case class Sequence(p: Pattern, q: Pattern) extends Pattern
+  private case class Alternative(p: Pattern, q: Pattern) extends Pattern
+  private case class Elem(e: E) extends Pattern
+  private case class Push(v: Any) extends Pattern
+  private case class Transform(arity: Int, f: Seq[Any] => Any) extends Pattern
 
-  def parse(input: Input[E], pat: Pattern): Option[(Option[V], Input[E])] = {
-    case class Choice(input: Input[E], pattern: Pattern, call: List[Pattern])
+  def run[I <: Input[E]](input: I, pat: Pattern): Option[(Option[Any], I)] = {
+    case class Choice(input: I, pattern: Pattern, call: List[Pattern])
     var call: List[Pattern] = Nil
     val choice = new mutable.Stack[Choice]
-    val value = new mutable.Stack[V]
-    var pointer = input
+    val value = new mutable.Stack[Any]
+    var pointer: I = input
+    var limit = Int.MaxValue
 
     def push(p: Pattern): Unit = call = p :: call
 
@@ -52,19 +57,29 @@ abstract class Recognizer[E, V] {
         case h :: t =>
           call = t
           h
+        case _ => sys.error("no more patterns")
       }
 
     push(pat)
 
-    var limit = 20
+    def backtrack: Boolean =
+      choice headOption match {
+        case None => false
+        case Some(Choice(p, n, c)) =>
+          pointer = p
+          call = n :: c
+          true
+      }
 
     @tailrec
-    def parse(): Boolean = {
-      limit -= 1
+    def run: Boolean = {
+      if (limit < Int.MaxValue) {
+        limit -= 1
 
-      if (limit < 0) {
-        println("LIMIT")
-        return false
+        if (limit < 0) {
+          println("LIMIT")
+          return false
+        }
       }
 
       if (call.nonEmpty) {
@@ -72,41 +87,36 @@ abstract class Recognizer[E, V] {
           case Alternative(p, q) =>
             choice push Choice(pointer, q, call)
             push(p)
-            parse()
-          case Opt(p) =>
-            choice push Choice(pointer, Nop, call)
-            push(p)
-            parse()
+            run
           case Elem(e) =>
             if (!pointer.eoi && pointer.elem == e) {
-              pointer = pointer.next
-              parse()
-            } else
-              choice headOption match {
-                case None => false
-                case Some(Choice(p, n, c)) =>
-                  pointer = p
-                  call = n :: c
-                  parse()
-              }
+              pointer = pointer.next.asInstanceOf[I]
+              run
+            } else if (backtrack) run
+            else false
           case Push(v) =>
             value push v
-            parse()
+            run
           case Transform(arity, f) =>
             value push f(value.take(arity).reverse.toList)
-            parse()
+            run
           case Sequence(p, q) =>
             push(q)
             push(p)
-            parse()
-          case Nop     => parse()
-          case Pointer => value push pointer
+            run
+          case Nop => run
+          case Fail =>
+            if (backtrack) run
+            else false
+          case Pointer =>
+            value push pointer
+            run
         }
       } else
         true
     }
 
-    if (parse()) Some((value.headOption, pointer))
+    if (run) Some((value.headOption, pointer))
     else None
   }
 
