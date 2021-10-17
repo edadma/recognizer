@@ -42,13 +42,18 @@ trait Recognizer[E] {
   private case class Push(v: Any) extends Pattern
   private case class Transform(arity: Int, f: Seq[Any] => Any) extends Pattern
 
+  var runlimit: Int = Int.MaxValue
+
   def run[I <: Input[E]](input: I, pat: Pattern): Option[(Option[Any], I)] = {
     case class Choice(input: I, pattern: Pattern, call: List[Pattern])
     var call: List[Pattern] = Nil
     val choice = new mutable.Stack[Choice]
     val value = new mutable.Stack[Any]
     var pointer: I = input
-    var limit = Int.MaxValue
+
+    def debug(s: String): Unit =
+      if (runlimit < Int.MaxValue)
+        println(s)
 
     def push(p: Pattern): Unit = call = p :: call
 
@@ -62,27 +67,30 @@ trait Recognizer[E] {
 
     push(pat)
 
-    def backtrack: Boolean =
-      choice headOption match {
-        case None => false
-        case Some(Choice(p, n, c)) =>
-          pointer = p
-          call = n :: c
-          true
-      }
+    def backtrack: Boolean = {
+      debug(s"backtrack $choice")
+      if (choice.nonEmpty) {
+        val Choice(p, n, c) = choice.pop
+
+        pointer = p
+        call = n :: c
+        true
+      } else false
+    }
 
     @tailrec
     def run: Boolean = {
-      if (limit < Int.MaxValue) {
-        limit -= 1
+      if (runlimit < Int.MaxValue) {
+        runlimit -= 1
 
-        if (limit < 0) {
+        if (runlimit < 0) {
           println("LIMIT")
           return false
         }
       }
 
       if (call.nonEmpty) {
+        debug(s"run $call $pointer")
         pop match {
           case Alternative(p, q) =>
             choice push Choice(pointer, q, call)
