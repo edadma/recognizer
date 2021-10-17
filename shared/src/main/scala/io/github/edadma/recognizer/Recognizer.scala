@@ -139,7 +139,7 @@ trait Recognizer[E] {
           case Match(s) =>
             val it = s.iterator
 
-            while (it.hasNext && !pointer.eoi && pointer.elem == it.next) {
+            while (it.hasNext && !pointer.eoi && pointer.elem == it.next()) {
               pointer = pointer.next
             }
 
