@@ -25,6 +25,30 @@ class BasicTests extends AnyFreeSpec with Matchers with Testing {
     parse("ab", 'a' ~ 'b') shouldBe Some((None, ""))
   }
 
+  "basic 5a" in {
+    parse("a", elem('a') | 'b') shouldBe Some((None, ""))
+  }
+
+  "basic 5b" in {
+    parse("b", elem('a') | 'b') shouldBe Some((None, ""))
+  }
+
+  "basic 5c" in {
+    parse("c", elem('a') | 'b') shouldBe None
+  }
+
+  "basic 5d" in {
+    parse("", elem('a') | 'b') shouldBe None
+  }
+
+  "basic 5e" in {
+    parse("ac", elem('a') | 'b') shouldBe Some((None, "c"))
+  }
+
+  "basic 5f" in {
+    parse("bc", elem('a') | 'b') shouldBe Some((None, "c"))
+  }
+
   "basic 6" in {
     parse("ab", (elem('a') | 'c') ~ 'b') shouldBe Some((None, ""))
   }
@@ -34,7 +58,27 @@ class BasicTests extends AnyFreeSpec with Matchers with Testing {
   }
 
   "basic 8" in {
+    parse("xb", (elem('a') | 'c') ~ 'b') shouldBe None
+  }
+
+  "basic 9" in {
+    parse("ax", (elem('a') | 'c') ~ 'b') shouldBe None
+  }
+
+  "basic 10" in {
+    parse("cx", (elem('a') | 'c') ~ 'b') shouldBe None
+  }
+
+  "basic 11" in {
     parse("a", (elem('a') | 'c') ~ 'b') shouldBe None
+  }
+
+  "basic 12" in {
+    parse("c", (elem('a') | 'c') ~ 'b') shouldBe None
+  }
+
+  "basic 13" in {
+    parse("", (elem('a') | 'c') ~ 'b') shouldBe None
   }
 
 }
