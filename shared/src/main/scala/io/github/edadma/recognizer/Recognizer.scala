@@ -2,6 +2,7 @@ package io.github.edadma.recognizer
 
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.language.{implicitConversions, postfixOps}
 
 trait Recognizer[E] {
@@ -17,13 +18,30 @@ trait Recognizer[E] {
   def opt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     p ~ transform(arity)(args => Some(f(args))) | nop ~ push(None)
 
-  def rep(p: Pattern): Pattern = {
-    lazy val pat: Pattern = opt(p ~ NonStrict(() => pat))
+//  def rep(p: Pattern): Pattern = {
+//    lazy val pat: Pattern = opt(p ~ NonStrict(() => pat))
+//
+//    pat
+//  }
+//
+//  def rep1(p: Pattern): Pattern = p ~ rep(p)
+
+  def rep1(p: Pattern): Pattern = {
+    lazy val pat: Pattern = p ~ opt(NonStrict(() => pat))
 
     pat
   }
 
-  def rep1(p: Pattern): Pattern = p ~ rep(p)
+  def rep(p: Pattern): Pattern = opt(rep1(p))
+
+  def rep1(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+    push(new ListBuffer[Any]) ~ rep1(p ~ transform(arity)(f) ~ transform(2) {
+      case Seq(list: ListBuffer[Any], item) =>
+        list += item
+        list
+    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+
+//  def rep(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
 
   def push(v: Any): Pattern = Push(v)
 
@@ -35,6 +53,8 @@ trait Recognizer[E] {
 //    })
 
   def transform(arity: Int)(f: Seq[Any] => Any): Pattern = Transform(arity, f)
+
+  def transform(f: Seq[Any] => Any): Pattern = Transform(1, f)
 
   trait Pattern {
     def ~(that: Pattern): Pattern = Sequence(this, that)
@@ -115,7 +135,9 @@ trait Recognizer[E] {
             value push v
             run
           case Transform(arity, f) =>
-            value push f(value.take(arity).reverse.toList)
+            debug(s"transform before $value")
+            value push f(List.fill(arity)(value.pop()).reverse)
+            debug(s"          after  $value")
             run
           case Sequence(p, q) =>
             push(q)
