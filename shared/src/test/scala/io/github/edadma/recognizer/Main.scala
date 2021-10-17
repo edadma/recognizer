@@ -23,11 +23,11 @@ object Main extends App {
 //    val pattern = Seq(Elem('a'), Seq(Alt(Elem('b'), Elem('d')), Elem('c')))
 //    val pattern = Elem('a')
 //    val pattern = Alt(Elem('a'), Elem('b'))
-    val pattern = 'a' ~ ('b' | 'd' ~ 'e') ~ 'c'
+    val pattern = 'a' ~ ('b' | 'd' ~ opt('e')) ~ 'c'
 
     pprintln(pattern)
   }
 
-  println(M.parse(M.input("adec"), M.pattern))
+  println(M.parse(M.input("adc"), M.pattern))
 
 }

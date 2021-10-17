@@ -8,16 +8,23 @@ abstract class Recognizer[E, V] {
 
   implicit def elem(e: E): Elem = Elem(e)
 
+  def opt(p: Pattern): Opt = Opt(p)
+
+  def success: Nop.type = Nop
+
   trait Pattern {
-    def ~(that: Pattern): And = And(this, that)
-    def |(that: Pattern): Or = Or(this, that)
+    def ~(that: Pattern): Sequence = Sequence(this, that)
+    def |(that: Pattern): Alternative = Alternative(this, that)
+    def ? : Opt = Opt(this)
   }
 
-  case class And(p: Pattern, q: Pattern) extends Pattern
-  case class Or(p: Pattern, q: Pattern) extends Pattern
+  case object Nop extends Pattern
+  case class Sequence(p: Pattern, q: Pattern) extends Pattern
+  case class Alternative(p: Pattern, q: Pattern) extends Pattern
   case class Elem(e: E) extends Pattern
   case class Push(v: V) extends Pattern
   case class Transform(argc: Int, f: Seq[V] => V) extends Pattern
+  case class Opt(p: Pattern) extends Pattern
 
   def parse(input: Input[E], pat: Pattern): Option[(Option[V], Input[E])] = {
     case class Choice(input: Input[E], pattern: Pattern, call: List[Pattern])
@@ -37,19 +44,25 @@ abstract class Recognizer[E, V] {
 
     push(pat)
 
-    var limit = 10
+    var limit = 20
 
     @tailrec
     def parse(): Boolean = {
       limit -= 1
 
-      if (limit < 0) return false
+      if (limit < 0) {
+        println("LIMIT")
+        return false
+      }
 
       if (call.nonEmpty) {
-        println("next", call.head, pointer)
         pop match {
-          case Or(p, q) =>
+          case Alternative(p, q) =>
             choice push Choice(pointer, q, call)
+            push(p)
+            parse()
+          case Opt(p) =>
+            choice push Choice(pointer, Nop, call)
             push(p)
             parse()
           case Elem(e) =>
@@ -68,10 +81,11 @@ abstract class Recognizer[E, V] {
             value push v
             parse()
           //          case Transform(argc, f) =>
-          case And(p, q) =>
+          case Sequence(p, q) =>
             push(q)
             push(p)
             parse()
+          case Nop => parse()
         }
       } else
         true
