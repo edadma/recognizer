@@ -108,6 +108,8 @@ trait Recognizer[E] {
 
     push(pat)
 
+    def values: List[Any] = value
+
     private[recognizer] def push(p: Pattern): Unit = call = p :: call
 
     private[recognizer] def pop: Pattern =

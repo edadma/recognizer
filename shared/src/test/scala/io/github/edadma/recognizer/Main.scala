@@ -27,7 +27,7 @@ object Main extends App with Testing {
 
 //  runlimit = 20
 
-  run(StringInput("ababab"), string(rep("ab")) ~ rep(any)) match {
+  run(StringInput("ababab"), string(rep("ab")) ~ string(rep(any))) match {
     case None => println("no match")
     case Some(r) =>
       result(r)
