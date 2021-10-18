@@ -26,7 +26,7 @@ object Main extends App with Testing {
 //  runlimit = 20
 
 //  println(parse(s, image | link | imageLink))
-  println(parse("aaab", string(rep(not('b') /* ~ any*/ ))))
+  println(parse("aaab", string(rep(not('b') ~ any))))
 //  println(parse("a", string(not('b') ~ any)))
 
 //  run(StringInput("ababab"), string(rep("ab")) ~ string(rep(any))) match {
