@@ -1,13 +1,19 @@
 package io.github.edadma.recognizer
 
-import pprint._
-
 object Main extends App with Testing {
 
-//  println(parse("adc", 'a' ~ ('b' | 'd' ~ opt('e')) ~ 'c'))
-//  runlimit = 30
-//  println(parse("ab", rep(elem('a') | 'b') ~ string(rep(any)) ~))
-//  println(parse("abcd", 'a' ~ capture(Seq('b', 'c') | 'e') ~ 'd'))
-  println(parse("abcd", 'a' ~ string("bc" | 'e') ~ 'd'))
+  case class Link(text: String, url: String, title: Option[String])
+  case class Image(text: String, url: String)
+  case class ImageLink(text: String, img: String, url: String)
+
+  val s = "[Example](https://example.com \"Example Title\")"
+//  val s = "![Example](https://example.com)"
+  val space = rep(whitespace)
+  val image: Pattern = "![" ~ string(rep(noneOf(']'))) ~ ']' ~ '(' ~ string(rep(noneOf(')'))) ~ ')' ~ action2(Image)
+  val link: Pattern = '[' ~ string(rep(noneOf(']'))) ~ ']' ~ '(' ~ string(rep(noneOf(')', '"'))) ~ space ~ opt(
+    '"' ~ string(rep(noneOf('"'))) ~ '"',
+    1)(_.head) ~ ')' ~ action3(Link)
+
+  println(parse(s, link))
 
 }
