@@ -95,32 +95,34 @@ trait Recognizer[E] {
 
   protected case class Choice(input: I, pattern: Pattern, call: List[Pattern], value: List[Any])
 
-  class Runstate(private[recognizer] var pointer: I) {
+  class Runstate(private[recognizer] var pointer: I, pat: Pattern) {
     private[recognizer] val choice = new mutable.Stack[Choice]
     private[recognizer] var call: List[Pattern] = Nil
     private[recognizer] var value: List[Any] = Nil
+
+    push(pat)
+
+    private[recognizer] def push(p: Pattern): Unit = call = p :: call
+
+    private[recognizer] def pop: Pattern =
+      call match {
+        case h :: t =>
+          call = t
+          h
+        case _ => sys.error("no more patterns")
+      }
   }
 
   var runlimit: Int = Int.MaxValue
 
-  def run(input: I, pat: Pattern): Option[(Option[Any], I)] = {
-    val state = new Runstate(input)
+//  def rerun(state: Runstate): Option[(Option[Any], I, Runstate)] = {}
 
+  def run(input: I, pat: Pattern): Option[(Option[Any], I, Runstate)] = run(new Runstate(input, pat))
+
+  private def run(state: Runstate): Option[(Option[Any], I, Runstate)] = {
     def debug(s: String): Unit =
       if (runlimit < Int.MaxValue)
         println(s)
-
-    def push(p: Pattern): Unit = state.call = p :: state.call
-
-    def pop: Pattern =
-      state.call match {
-        case h :: t =>
-          state.call = t
-          h
-        case _ => sys.error("no more patterns")
-      }
-
-    push(pat)
 
     def backtrack: Boolean = {
       debug(s"backtrack ${state.choice}")
@@ -146,13 +148,15 @@ trait Recognizer[E] {
       }
 
       if (state.call.nonEmpty) {
-        debug(s"run ${state.call} $pointer")
-        pop match {
+        debug(s"run ${state.call} ${state.pointer}")
+        state.pop match {
           case Alternative(p, q) =>
+            debug(s"alternative $p  $q")
             state.choice push Choice(state.pointer, q, state.call, state.value)
-            push(p)
+            state.push(p)
             run
           case Match(s) =>
+            debug(s"match $s")
             val it = s.iterator
 
             while (it.hasNext && !state.pointer.eoi && state.pointer.elem == it.next()) {
@@ -180,8 +184,9 @@ trait Recognizer[E] {
             debug(s"          after  ${state.value}")
             run
           case Sequence(p, q) =>
-            push(q)
-            push(p)
+            debug(s"sequence $p  $q")
+            state.push(q)
+            state.push(p)
             run
           case Nop => run
           case Fail =>
@@ -191,14 +196,14 @@ trait Recognizer[E] {
             state.value = state.pointer :: state.value
             run
           case NonStrict(p) =>
-            push(p())
+            state.push(p())
             run
         }
       } else
         true
     }
 
-    if (run) Some((state.value.headOption, state.pointer))
+    if (run) Some((state.value.headOption, state.pointer, state))
     else None
   }
 

@@ -23,6 +23,8 @@ object Main extends App with Testing {
 //
 //  println(parse(s, image | link | imageLink))
 
+//  runlimit = 20
+
   println(parse("ababcd", string(rep("ab")) ~ "abcd"))
 
 }

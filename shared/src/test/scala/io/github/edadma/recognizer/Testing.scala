@@ -4,7 +4,7 @@ trait Testing extends CharRecognizer {
 
   def parse(s: String, p: Pattern): Option[(Option[Any], String)] = {
     run(StringInput(s), p) map {
-      case (v, r) => (v, r.rest.mkString)
+      case (v, r, _) => (v, r.rest.mkString)
     }
   }
 
