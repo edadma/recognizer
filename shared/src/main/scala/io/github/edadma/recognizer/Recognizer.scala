@@ -73,6 +73,10 @@ trait Recognizer[E] {
     case Seq(a, b, c) => f(a.asInstanceOf[A], b.asInstanceOf[B], c.asInstanceOf[C])
   }
 
+  def action4[A, B, C, D](f: (A, B, C, D) => Any): Pattern = transform(4) {
+    case Seq(a, b, c, d) => f(a.asInstanceOf[A], b.asInstanceOf[B], c.asInstanceOf[C], d.asInstanceOf[D])
+  }
+
   trait Pattern {
     def ~(that: Pattern): Pattern = Sequence(this, that)
     def |(that: Pattern): Pattern = Alternative(this, that)
