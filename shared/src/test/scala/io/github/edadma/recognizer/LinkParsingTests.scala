@@ -9,14 +9,14 @@ class LinkParsingTests extends AnyFreeSpec with Matchers with Testing {
   val ws: Pattern = rep(whitespace)
   val ws1: Pattern = rep1(whitespace)
   val link: Pattern =
-    '[' ~ string(rep(noneOf(']'))) ~ ']' ~
-      '(' ~
-      (string(rep(not(anyOf(')', '"') | whitespace) ~ any)) ~ ws ~
-        opt('"' ~ string(rep(noneOf('"'))) ~ '"', 1)(_.head) |
-        string(rep(not(anyOf(')', '\'') | whitespace) ~ any)) ~ ws ~
-          opt('\'' ~ string(rep(noneOf('\''))) ~ '\'', 1)(_.head) |
-        string(rep(not(anyOf(')', '(') | whitespace) ~ any)) ~ ws ~
-          opt('(' ~ string(rep(noneOf(')'))) ~ ')', 1)(_.head)) ~ ')' ~
+    '[' ~ string(rep(noneOf(']'))) ~ ']' ~ ws ~
+      '(' ~ ws ~
+      (('<' ~ string(rep(noneOf('>'))) ~ '>' | string(rep(noneOf(')', ' ')))) ~
+        opt(ws1 ~ '"' ~ string(rep(noneOf('"'))) ~ '"', 1)(_.head) |
+        string(rep(noneOf(')', ' '))) ~
+          opt(ws1 ~ '\'' ~ string(rep(noneOf('\''))) ~ '\'', 1)(_.head) |
+        string(rep(noneOf(')', ' '))) ~
+          opt(ws1 ~ '(' ~ string(rep(noneOf(')'))) ~ ')', 1)(_.head)) ~ ws ~ ')' ~
       action3(Link)
 
   "link 1" in {
@@ -29,6 +29,34 @@ class LinkParsingTests extends AnyFreeSpec with Matchers with Testing {
 
   "link 3" in {
     parse("[link](/uri (title))", link) shouldBe Some(Some(Link("link", "/uri", Some("title"))), "")
+  }
+
+  "link 4" in {
+    parse("[link](/uri)", link) shouldBe Some(Some(Link("link", "/uri", None)), "")
+  }
+
+  "link 5" in {
+    parse("[](./target.md)", link) shouldBe Some(Some(Link("", "./target.md", None)), "")
+  }
+
+  "link 6" in {
+    parse("[link]()", link) shouldBe Some(Some(Link("link", "", None)), "")
+  }
+
+  "link 7" in {
+    parse("[link](<>)", link) shouldBe Some(Some(Link("link", "", None)), "")
+  }
+
+  "link 8" in {
+    parse("[]()", link) shouldBe Some(Some(Link("", "", None)), "")
+  }
+
+  "link 9" in {
+    parse("[link](/my uri)", link) shouldBe None
+  }
+
+  "link 10" in {
+    parse("[link](</my uri>)", link) shouldBe Some(Some(Link("link", "/my uri", None)), "")
   }
 
 }
