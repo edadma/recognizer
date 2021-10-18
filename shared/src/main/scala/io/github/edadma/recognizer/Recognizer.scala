@@ -25,6 +25,12 @@ trait Recognizer[E] {
 
   def fail: Pattern = Fail
 
+  def !! : Pattern = Cut
+
+  def enclose(p: Pattern): Pattern = Enclosure(p)
+
+  def not(p: Pattern): Pattern = enclose(p ~ !! ~ fail | nop)
+
   def opt(p: Pattern): Pattern = p | nop
 
   def opt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
@@ -82,18 +88,23 @@ trait Recognizer[E] {
     def |(that: Pattern): Pattern = Alternative(this, that)
   }
 
+  protected case class Enclosure(p: Pattern) extends Pattern
+  protected case object Cut extends Pattern
   protected case object Nop extends Pattern
   protected case object Fail extends Pattern
   protected case object Pointer extends Pattern
   protected case class Sequence(p: Pattern, q: Pattern) extends Pattern
   protected case class Alternative(p: Pattern, q: Pattern) extends Pattern
+  protected case class Not(p: Pattern) extends Pattern
   protected case class Clas(c: E => Boolean) extends Pattern
   protected case class Match(e: Seq[E]) extends Pattern
   protected case class Push(v: Any) extends Pattern
   protected case class Transform(arity: Int, f: Seq[Any] => Any) extends Pattern
   protected case class NonStrict(p: () => Pattern) extends Pattern
 
-  protected case class Choice(input: I, pattern: Pattern, call: List[Pattern], value: List[Any])
+  protected trait Choice
+  protected case class ChoicePoint(input: I, pattern: Pattern, call: List[Pattern], value: List[Any]) extends Choice
+  protected case object Ceiling extends Choice
 
   var runlimit: Int = Int.MaxValue
 
@@ -123,12 +134,14 @@ trait Recognizer[E] {
     def backtrack: Boolean = {
       debug(s"backtrack $choice")
       if (choice.nonEmpty) {
-        val Choice(p, n, c, v) = choice.pop()
-
-        pointer = p
-        call = n :: c
-        value = v
-        true
+        choice.pop() match {
+          case ChoicePoint(p, n, c, v) =>
+            pointer = p
+            call = n :: c
+            value = v
+            true
+          case Ceiling => backtrack
+        }
       } else false
     }
   }
@@ -154,9 +167,20 @@ trait Recognizer[E] {
       if (state.call.nonEmpty) {
         debug(s"run ${state.call} ${state.pointer}")
         state.pop match {
+          case Cut =>
+            debug(s"cut")
+            while (state.choice.top.isInstanceOf[ChoicePoint]) state.choice.pop()
+            state.choice.pop() match {
+              case Ceiling => run
+              case _       => sys.error("ceiling not encountered during cut")
+            }
+          case Enclosure(p) =>
+            state.choice push Ceiling
+            state.push(p)
+            run
           case Alternative(p, q) =>
             debug(s"alternative $p  $q")
-            state.choice push Choice(state.pointer, q, state.call, state.value)
+            state.choice push ChoicePoint(state.pointer, q, state.call, state.value)
             state.push(p)
             run
           case Match(s) =>
@@ -194,6 +218,7 @@ trait Recognizer[E] {
             run
           case Nop => run
           case Fail =>
+            debug(s"fail")
             if (state.backtrack) run
             else false
           case Pointer =>
