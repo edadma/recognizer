@@ -10,12 +10,25 @@ class LinkParsingTests extends AnyFreeSpec with Matchers with Testing {
   val ws1: Pattern = rep1(whitespace)
   val link: Pattern =
     '[' ~ string(rep(noneOf(']'))) ~ ']' ~
-      '(' ~ string(rep(not(anyOf(')', '"') | whitespace) ~ any)) ~ ws ~
-      opt('"' ~ string(rep(noneOf('"'))) ~ '"', 1)(_.head) ~ ')' ~
+      '(' ~
+      (string(rep(not(anyOf(')', '"') | whitespace) ~ any)) ~ ws ~
+        opt('"' ~ string(rep(noneOf('"'))) ~ '"', 1)(_.head) |
+        string(rep(not(anyOf(')', '\'') | whitespace) ~ any)) ~ ws ~
+          opt('\'' ~ string(rep(noneOf('\''))) ~ '\'', 1)(_.head) |
+        string(rep(not(anyOf(')', '(') | whitespace) ~ any)) ~ ws ~
+          opt('(' ~ string(rep(noneOf(')'))) ~ ')', 1)(_.head)) ~ ')' ~
       action3(Link)
 
   "link 1" in {
     parse("[link](/uri \"title\")", link) shouldBe Some(Some(Link("link", "/uri", Some("title"))), "")
+  }
+
+  "link 2" in {
+    parse("[link](/uri 'title')", link) shouldBe Some(Some(Link("link", "/uri", Some("title"))), "")
+  }
+
+  "link 3" in {
+    parse("[link](/uri (title))", link) shouldBe Some(Some(Link("link", "/uri", Some("title"))), "")
   }
 
 }
