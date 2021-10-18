@@ -23,10 +23,10 @@ object Main extends App with Testing {
       '"' ~ string(rep(noneOf('"'))) ~ '"',
       1)(_.head) ~ ')' ~ ']' ~ '(' ~ string(rep(noneOf(')', '"'))) ~ ')' ~ action4(ImageLink)
 
-//  runlimit = 20
+  runlimit = 50
 
 //  println(parse(s, image | link | imageLink))
-  println(parse("aaab", string(rep(not('b') /* ~ any*/ ))))
+  println(parse("b", string(rep(not('b') ~ any))))
 //  println(parse("a", string(not('b') ~ any)))
 
 //  run(StringInput("ababab"), string(rep("ab")) ~ string(rep(any))) match {
