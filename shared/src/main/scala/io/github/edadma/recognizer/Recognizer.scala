@@ -27,9 +27,9 @@ trait Recognizer[E] {
 
   def !! : Pattern = Cut
 
-  def enclose(p: Pattern): Pattern = Enclosure(p)
+  def fence: Pattern = Fence
 
-  def not(p: Pattern): Pattern = enclose(p ~ !! ~ fail | nop)
+  def not(p: Pattern): Pattern = fence ~ (p ~ !! ~ fail | nop)
 
   def opt(p: Pattern): Pattern = p | nop
 
@@ -88,7 +88,7 @@ trait Recognizer[E] {
     def |(that: Pattern): Pattern = Alternative(this, that)
   }
 
-  protected case class Enclosure(p: Pattern) extends Pattern
+  protected case object Fence extends Pattern
   protected case object Cut extends Pattern
   protected case object Nop extends Pattern
   protected case object Fail extends Pattern
@@ -170,13 +170,13 @@ trait Recognizer[E] {
           case Cut =>
             debug(s"cut")
             while (state.choice.top.isInstanceOf[ChoicePoint]) state.choice.pop()
-            state.choice.pop() match {
-              case Ceiling => run
-              case _       => sys.error("ceiling not encountered during cut")
-            }
-          case Enclosure(p) =>
+
+            if (state.choice.nonEmpty) {
+              state.choice.pop()
+              run
+            } else sys.error("ceiling not encountered during cut")
+          case Fence =>
             state.choice push Ceiling
-            state.push(p)
             run
           case Alternative(p, q) =>
             debug(s"alternative $p  $q")
