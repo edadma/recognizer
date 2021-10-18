@@ -1,5 +1,7 @@
 package io.github.edadma.recognizer
 
+import scala.annotation.tailrec
+
 object Main extends App with Testing {
 
   case class Link(text: String, url: String, title: Option[String])
@@ -25,6 +27,21 @@ object Main extends App with Testing {
 
 //  runlimit = 20
 
-  println(parse("ababcd", string(rep("ab")) ~ "abcd"))
+  run(StringInput("ababab"), string(rep("ab")) ~ rep(any)) match {
+    case None => println("no match")
+    case Some(r) =>
+      result(r)
+
+      @tailrec
+      def result(r: (Option[Any], I, Runstate)): Unit =
+        r match {
+          case (v, u, s) =>
+            println(v, u)
+            rerun(s) match {
+              case Some(r) => result(r)
+              case None    => println("no more matches")
+            }
+        }
+  }
 
 }

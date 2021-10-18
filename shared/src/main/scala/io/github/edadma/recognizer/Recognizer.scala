@@ -95,6 +95,12 @@ trait Recognizer[E] {
 
   protected case class Choice(input: I, pattern: Pattern, call: List[Pattern], value: List[Any])
 
+  var runlimit: Int = Int.MaxValue
+
+  private[recognizer] def debug(s: String): Unit =
+    if (runlimit < Int.MaxValue)
+      println(s)
+
   class Runstate private[recognizer] (private[recognizer] var pointer: I, pat: Pattern) {
     private[recognizer] val choice = new mutable.Stack[Choice]
     private[recognizer] var call: List[Pattern] = Nil
@@ -111,29 +117,27 @@ trait Recognizer[E] {
           h
         case _ => sys.error("no more patterns")
       }
-  }
-
-  var runlimit: Int = Int.MaxValue
-
-  def run(input: I, pat: Pattern): Option[(Option[Any], I, Runstate)] = run(new Runstate(input, pat))
-
-  def run(state: Runstate): Option[(Option[Any], I, Runstate)] = {
-    def debug(s: String): Unit =
-      if (runlimit < Int.MaxValue)
-        println(s)
 
     def backtrack: Boolean = {
-      debug(s"backtrack ${state.choice}")
-      if (state.choice.nonEmpty) {
-        val Choice(p, n, c, v) = state.choice.pop()
+      debug(s"backtrack $choice")
+      if (choice.nonEmpty) {
+        val Choice(p, n, c, v) = choice.pop()
 
-        state.pointer = p
-        state.call = n :: c
-        state.value = v
+        pointer = p
+        call = n :: c
+        value = v
         true
       } else false
     }
+  }
 
+  def run(input: I, pat: Pattern): Option[(Option[Any], I, Runstate)] = run(new Runstate(input, pat))
+
+  def rerun(state: Runstate): Option[(Option[Any], I, Runstate)] =
+    if (state.backtrack) run(state)
+    else None
+
+  def run(state: Runstate): Option[(Option[Any], I, Runstate)] = {
     @tailrec
     def run: Boolean = {
       if (runlimit < Int.MaxValue) {
@@ -162,13 +166,13 @@ trait Recognizer[E] {
             }
 
             if (!it.hasNext) run
-            else if (backtrack) run
+            else if (state.backtrack) run
             else false
           case Clas(c) =>
             if (!state.pointer.eoi && c(state.pointer.elem)) {
               state.pointer = state.pointer.next
               run
-            } else if (backtrack) run
+            } else if (state.backtrack) run
             else false
           case Push(v) =>
             state.value = v :: state.value
@@ -188,7 +192,7 @@ trait Recognizer[E] {
             run
           case Nop => run
           case Fail =>
-            if (backtrack) run
+            if (state.backtrack) run
             else false
           case Pointer =>
             state.value = state.pointer :: state.value
