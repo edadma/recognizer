@@ -10,7 +10,7 @@ class LinkParsingTests extends AnyFreeSpec with Matchers with Testing {
   val ws1: Pattern = rep1(whitespace)
   val link: Pattern =
     '[' ~ string(rep(noneOf(']'))) ~ ']' ~
-      '(' ~ string(rep(not(anyOf(')', '"') | whitespace))) ~ ws ~
+      '(' ~ string(rep(not(anyOf(')', '"') | whitespace) ~ any)) ~ ws ~
       opt('"' ~ string(rep(noneOf('"'))) ~ '"', 1)(_.head) ~ ')' ~
       action3(Link)
 

@@ -25,11 +25,11 @@ trait Recognizer[E] {
 
   def fail: Pattern = Fail
 
-  def >! : Pattern = Cut
+  def !! : Pattern = Cut
 
-  def !< : Pattern = Fence
+  def fence: Pattern = Fence
 
-  def not(p: Pattern): Pattern = !< ~ p ~ >! ~ fail | nop
+  def not(p: Pattern): Pattern = fence ~ (p ~ !! ~ fail | nop)
 
   def opt(p: Pattern): Pattern = p | nop
 
