@@ -95,7 +95,7 @@ trait Recognizer[E] {
 
   protected case class Choice(input: I, pattern: Pattern, call: List[Pattern], value: List[Any])
 
-  class Runstate(private[recognizer] var pointer: I, pat: Pattern) {
+  class Runstate private[recognizer] (private[recognizer] var pointer: I, pat: Pattern) {
     private[recognizer] val choice = new mutable.Stack[Choice]
     private[recognizer] var call: List[Pattern] = Nil
     private[recognizer] var value: List[Any] = Nil
@@ -115,11 +115,9 @@ trait Recognizer[E] {
 
   var runlimit: Int = Int.MaxValue
 
-//  def rerun(state: Runstate): Option[(Option[Any], I, Runstate)] = {}
-
   def run(input: I, pat: Pattern): Option[(Option[Any], I, Runstate)] = run(new Runstate(input, pat))
 
-  private def run(state: Runstate): Option[(Option[Any], I, Runstate)] = {
+  def run(state: Runstate): Option[(Option[Any], I, Runstate)] = {
     def debug(s: String): Unit =
       if (runlimit < Int.MaxValue)
         println(s)
