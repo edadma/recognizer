@@ -93,14 +93,14 @@ trait Recognizer[E] {
   protected case class Transform(arity: Int, f: Seq[Any] => Any) extends Pattern
   protected case class NonStrict(p: () => Pattern) extends Pattern
 
-  protected case class Choice(input: I, pattern: Pattern, call: List[Pattern])
+  protected case class Choice(input: I, pattern: Pattern, call: List[Pattern], value: List[Any])
 
   var runlimit: Int = Int.MaxValue
 
   def run(input: I, pat: Pattern): Option[(Option[Any], I)] = {
     var call: List[Pattern] = Nil
     val choice = new mutable.Stack[Choice]
-    val value = new mutable.Stack[Any]
+    var value: List[Any] = Nil
     var pointer: I = input
 
     def debug(s: String): Unit =
@@ -122,10 +122,11 @@ trait Recognizer[E] {
     def backtrack: Boolean = {
       debug(s"backtrack $choice")
       if (choice.nonEmpty) {
-        val Choice(p, n, c) = choice.pop()
+        val Choice(p, n, c, v) = choice.pop()
 
         pointer = p
         call = n :: c
+        value = v
         true
       } else false
     }
@@ -145,7 +146,7 @@ trait Recognizer[E] {
         debug(s"run $call $pointer")
         pop match {
           case Alternative(p, q) =>
-            choice push Choice(pointer, q, call)
+            choice push Choice(pointer, q, call, value)
             push(p)
             run
           case Match(s) =>
@@ -165,11 +166,14 @@ trait Recognizer[E] {
             } else if (backtrack) run
             else false
           case Push(v) =>
-            value push v
+            value = v :: value
             run
           case Transform(arity, f) =>
             debug(s"transform before $value")
-            value push f(List.fill(arity)(value.pop()).reverse)
+
+            val (args, rest) = value splitAt arity
+
+            value = f(args.reverse) :: rest
             debug(s"          after  $value")
             run
           case Sequence(p, q) =>
@@ -181,7 +185,7 @@ trait Recognizer[E] {
             if (backtrack) run
             else false
           case Pointer =>
-            value push pointer
+            value = pointer :: value
             run
           case NonStrict(p) =>
             push(p())
