@@ -27,9 +27,9 @@ object Main extends App with Testing {
 
 //  println(parse(s, image | link | imageLink))
   lazy val balanced: Pattern =
-    noneOf('(', ')') | '(' ~ rep(nonStrict(balanced)) ~ ')'
+    rep(noneOf('(', ')') | '(' ~ nonStrict(balanced) ~ ')')
 
-  println(parse("(asdf)", '(' ~ string(rep(balanced)) ~ ')'))
+  println(parse("(foo(and(bar)))", '(' ~ string(balanced) ~ ')'))
 
 //  run(StringInput("ababab"), string(rep("ab")) ~ string(rep(any))) match {
 //    case None => println("no match")
