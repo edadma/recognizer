@@ -26,8 +26,10 @@ object Main extends App with Testing {
 //  runlimit = 20
 
 //  println(parse(s, image | link | imageLink))
-  println(
-    parse("<as\ndf>", '<' ~ string(rep(noneOf('>', '\n'))) ~ '>' | not('<') ~ string(rep(noneOf(')', ' ', '\n')))))
+  lazy val balanced: Pattern =
+    noneOf('(', ')') | '(' ~ rep(nonStrict(balanced)) ~ ')'
+
+  println(parse("(asdf)", '(' ~ string(rep(balanced)) ~ ')'))
 
 //  run(StringInput("ababab"), string(rep("ab")) ~ string(rep(any))) match {
 //    case None => println("no match")

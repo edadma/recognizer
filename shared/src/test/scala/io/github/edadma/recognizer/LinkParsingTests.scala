@@ -8,12 +8,15 @@ class LinkParsingTests extends AnyFreeSpec with Matchers with Testing {
 
   val ws: Pattern = rep(whitespace)
   val ws1: Pattern = rep1(whitespace)
+  lazy val balanced: Pattern =
+    rep(noneOf('(', ')')) ~ '(' ~ NonStrict(() => balanced) ~ ')' ~ rep(noneOf('(', ')')) |
+      rep1(noneOf('(', ')'))
   val link: Pattern =
     '[' ~ string(rep(noneOf(']'))) ~ ']' ~ ws ~
       '(' ~ ws ~
       ('<' ~ string(rep(noneOf('>', '\n'))) ~ '>' | not('<') ~ string(rep(noneOf(')', ' ', '\n')))) ~
       opt(ws1 ~ ('"' ~ string(rep(noneOf('"'))) ~ '"' | '\'' ~ string(rep(noneOf('\''))) ~ '\'' |
-            '(' ~ string(rep(noneOf(')'))) ~ ')'),
+            '(' ~ string(rep(balanced)) ~ ')'),
           1)(_.head) ~ ws ~ ')' ~ action3(Link)
 
   "link 1" in {
@@ -74,6 +77,10 @@ class LinkParsingTests extends AnyFreeSpec with Matchers with Testing {
 
   "link 15" in {
     parse("[a](<b>c)", link) shouldBe None
+  }
+
+  "link 16" in {
+    parse("[link](foo(and(bar)))", link) shouldBe Some(Some(Link("link", "foo(and(bar))", None)), "")
   }
 
 }

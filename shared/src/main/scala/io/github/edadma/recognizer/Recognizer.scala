@@ -36,8 +36,10 @@ trait Recognizer[E] {
   def opt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     p ~ transform(arity)(args => Some(f(args))) | push(None)
 
+  def nonStrict(p: => Pattern): NonStrict = NonStrict(() => p)
+
   def rep1(p: Pattern): Pattern = {
-    lazy val pat: Pattern = p ~ opt(NonStrict(() => pat))
+    lazy val pat: Pattern = p ~ opt(nonStrict(pat))
 
     pat
   }
