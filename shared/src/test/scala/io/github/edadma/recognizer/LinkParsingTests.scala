@@ -3,24 +3,8 @@ package io.github.edadma.recognizer
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 
-object grammar extends Testing {
-  case class Link(text: String, url: String, title: Option[String])
-
-  val ws: Pattern = rep(whitespace)
-  val ws1: Pattern = rep1(whitespace)
-  lazy val balancedDestination: Pattern = rep(noneOf('(', ')', ' ', '\n') | '(' ~ nonStrict(balancedDestination) ~ ')')
-  lazy val balancedText: Pattern = rep(noneOf('[', ']') | '[' ~ nonStrict(balancedText) ~ ']')
-  val link: Pattern =
-    '[' ~ string(balancedText) ~ ']' ~
-      '(' ~ ws ~
-      ('<' ~ string(rep(noneOf('>', '\n'))) ~ '>' | not('<') ~ string(balancedDestination)) ~
-      opt(ws1 ~ ('"' ~ string(rep(noneOf('"'))) ~ '"' | '\'' ~ string(rep(noneOf('\''))) ~ '\'' | '(' ~ string(
-            rep(noneOf(')'))) ~ ')'),
-          1)(_.head) ~ ws ~ ')' ~ action3(Link)
-}
-
 class LinkParsingTests extends AnyFreeSpec with Matchers {
-  import grammar._
+  import LinksImages._
 
   "link 1" in {
     parse("[link](/uri \"title\")", link) shouldBe Some(Some(Link("link", "/uri", Some("title"))), "")
