@@ -36,7 +36,9 @@ trait Recognizer[E] {
   def opt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     p ~ transform(arity)(args => Some(f(args))) | push(None)
 
-  def nonStrict(p: => Pattern): NonStrict = NonStrict(() => p)
+  def nonStrict(p: => Pattern): Pattern = NonStrict(() => p)
+
+  def test(c: List[Any] => Boolean): Pattern = Test(c)
 
   def rep1(p: Pattern): Pattern = {
     lazy val pat: Pattern = p ~ opt(nonStrict(pat))
@@ -73,6 +75,8 @@ trait Recognizer[E] {
 
   def transform(f: Seq[Any] => Any): Pattern = Transform(1, f)
 
+  def action[A](f: A => Any): Pattern = transform(1) { case Seq(a) => f(a.asInstanceOf[A]) }
+
   def action2[A, B](f: (A, B) => Any): Pattern = transform(2) {
     case Seq(a, b) => f(a.asInstanceOf[A], b.asInstanceOf[B])
   }
@@ -103,6 +107,7 @@ trait Recognizer[E] {
   protected case class Push(v: Any) extends Pattern
   protected case class Transform(arity: Int, f: Seq[Any] => Any) extends Pattern
   protected case class NonStrict(p: () => Pattern) extends Pattern
+  protected case class Test(p: List[Any] => Boolean) extends Pattern
 
   protected trait Choice
   protected case class ChoicePoint(input: I, pattern: Pattern, call: List[Pattern], value: List[Any]) extends Choice
@@ -229,6 +234,10 @@ trait Recognizer[E] {
           case NonStrict(p) =>
             state.push(p())
             run
+          case Test(c) =>
+            if (c(state.value)) run
+            else if (state.backtrack) run
+            else false
         }
       } else
         true
