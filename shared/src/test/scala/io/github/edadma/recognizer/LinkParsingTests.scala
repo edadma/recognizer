@@ -17,7 +17,7 @@ object grammar extends Testing {
             rep(noneOf(')'))) ~ ')'),
           1)(_.head) ~ ws ~ ')' ~ action3(Link)
 }
-//'(' ~ string(balanced) ~ ')'
+
 class LinkParsingTests extends AnyFreeSpec with Matchers {
   import grammar._
 
