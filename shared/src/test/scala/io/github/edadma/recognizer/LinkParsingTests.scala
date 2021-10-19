@@ -8,11 +8,12 @@ object grammar extends Testing {
 
   val ws: Pattern = rep(whitespace)
   val ws1: Pattern = rep1(whitespace)
-  lazy val balanced: Pattern = rep(noneOf('(', ')', ' ', '\n') | '(' ~ nonStrict(balanced) ~ ')')
+  lazy val balancedDestination: Pattern = rep(noneOf('(', ')', ' ', '\n') | '(' ~ nonStrict(balancedDestination) ~ ')')
+  lazy val balancedText: Pattern = rep(noneOf('[', ']') | '[' ~ nonStrict(balancedText) ~ ']')
   val link: Pattern =
-    '[' ~ string(rep(noneOf(']'))) ~ ']' ~
+    '[' ~ string(balancedText) ~ ']' ~
       '(' ~ ws ~
-      ('<' ~ string(rep(noneOf('>', '\n'))) ~ '>' | not('<') ~ string(balanced)) ~
+      ('<' ~ string(rep(noneOf('>', '\n'))) ~ '>' | not('<') ~ string(balancedDestination)) ~
       opt(ws1 ~ ('"' ~ string(rep(noneOf('"'))) ~ '"' | '\'' ~ string(rep(noneOf('\''))) ~ '\'' | '(' ~ string(
             rep(noneOf(')'))) ~ ')'),
           1)(_.head) ~ ws ~ ')' ~ action3(Link)
@@ -117,6 +118,10 @@ class LinkParsingTests extends AnyFreeSpec with Matchers {
 
   "link 24" in {
     parse("[link] (/uri)", link) shouldBe None
+  }
+
+  "link 25" in {
+    parse("[link [foo [bar]]](/uri)", link) shouldBe Some(Some(Link("link [foo [bar]]", "/uri", None)), "")
   }
 
 }
