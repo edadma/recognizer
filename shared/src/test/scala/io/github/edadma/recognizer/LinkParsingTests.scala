@@ -60,4 +60,20 @@ class LinkParsingTests extends AnyFreeSpec with Matchers with Testing {
     parse("[link](<foo\nbar>)", link) shouldBe None
   }
 
+  "link 12" in {
+    parse("[a](<b)c>)", link) shouldBe Some(Some(Link("a", "b)c", None)), "")
+  }
+
+  "link 13" in {
+    parse("[a](<b)c", link) shouldBe None
+  }
+
+  "link 14" in {
+    parse("[a](<b)c>", link) shouldBe None
+  }
+
+  "link 15" in {
+    parse("[a](<b>c)", link) shouldBe None
+  }
+
 }
