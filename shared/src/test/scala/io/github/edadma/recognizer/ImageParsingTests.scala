@@ -119,63 +119,63 @@ class ImageParsingTests extends AnyFreeSpec with Matchers {
     parse("![image [bar](/uri)", testPattern) shouldBe None
   }
 
-  "ref 1" in {
+  "image ref 1" in {
     parse("![foo][bar]", testPattern) shouldBe Some(Some(Image("foo", "/url", Some("title"))), "")
   }
 
-  "ref 2" in {
+  "image ref 2" in {
     parse("![image [foo [bar]]][ref]", testPattern) shouldBe Some(Some(Image("image [foo [bar]]", "/uri", None)), "")
   }
 
-  "ref 3" in {
+  "image ref 3" in {
     parse("![foo][BaR]", testPattern) shouldBe Some(Some(Image("foo", "/url", Some("title"))), "")
   }
 
-  "ref 4" in {
+  "image ref 4" in {
     parse("![foo] [bar]", testPattern) shouldBe None
   }
 
-  "ref 5" in {
+  "image ref 5" in {
     parse("![foo]\n[bar]", testPattern) shouldBe None
   }
 
-  "ref 6" in {
+  "image ref 6" in {
     parse("![foo][ref[]", testPattern) shouldBe None
   }
 
-  "ref 7" in {
+  "image ref 7" in {
     parse("![]", testPattern) shouldBe None
   }
 
-  "ref 8" in {
+  "image ref 8" in {
     parse("![\n]", testPattern) shouldBe None
   }
 
-  "ref 9" in {
+  "image ref 9" in {
     parse("![fooo][]", testPattern) shouldBe Some(Some(Image("fooo", "/url", Some("title"))), "")
   }
 
-  "ref 10" in {
+  "image ref 10" in {
     parse("![Fooo][]", testPattern) shouldBe Some(Some(Image("Fooo", "/url", Some("title"))), "")
   }
 
-  "ref 11" in {
+  "image ref 11" in {
     parse("![fooo]\n[]", testPattern) shouldBe Some(Some(Image("fooo", "/url", Some("title"))), "\n[]")
   }
 
-  "ref 12" in {
+  "image ref 12" in {
     parse("![fooo]", testPattern) shouldBe Some(Some(Image("fooo", "/url", Some("title"))), "")
   }
 
-  "ref 13" in {
+  "image ref 13" in {
     parse("![[bar [foo]", testPattern) shouldBe None
   }
 
-  "ref 14" in {
+  "image ref 14" in {
     parse("![Fooo]", testPattern) shouldBe Some(Some(Image("Fooo", "/url", Some("title"))), "")
   }
 
-  "ref 15" in {
+  "image ref 15" in {
     parse("![fooo] bar", testPattern) shouldBe Some(Some(Image("fooo", "/url", Some("title"))), " bar")
   }
 

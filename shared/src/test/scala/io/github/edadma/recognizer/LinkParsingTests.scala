@@ -117,63 +117,63 @@ class LinkParsingTests extends AnyFreeSpec with Matchers {
     parse("[link [bar](/uri)", testPattern) shouldBe None
   }
 
-  "ref 1" in {
+  "link ref 1" in {
     parse("[foo][bar]", testPattern) shouldBe Some(Some(Link("foo", "/url", Some("title"))), "")
   }
 
-  "ref 2" in {
+  "link ref 2" in {
     parse("[link [foo [bar]]][ref]", testPattern) shouldBe Some(Some(Link("link [foo [bar]]", "/uri", None)), "")
   }
 
-  "ref 3" in {
+  "link ref 3" in {
     parse("[foo][BaR]", testPattern) shouldBe Some(Some(Link("foo", "/url", Some("title"))), "")
   }
 
-  "ref 4" in {
+  "link ref 4" in {
     parse("[foo] [bar]", testPattern) shouldBe None
   }
 
-  "ref 5" in {
+  "link ref 5" in {
     parse("[foo]\n[bar]", testPattern) shouldBe None
   }
 
-  "ref 6" in {
+  "link ref 6" in {
     parse("[foo][ref[]", testPattern) shouldBe None
   }
 
-  "ref 7" in {
+  "link ref 7" in {
     parse("[]", testPattern) shouldBe None
   }
 
-  "ref 8" in {
+  "link ref 8" in {
     parse("[\n]", testPattern) shouldBe None
   }
 
-  "ref 9" in {
+  "link ref 9" in {
     parse("[fooo][]", testPattern) shouldBe Some(Some(Link("fooo", "/url", Some("title"))), "")
   }
 
-  "ref 10" in {
+  "link ref 10" in {
     parse("[Fooo][]", testPattern) shouldBe Some(Some(Link("Fooo", "/url", Some("title"))), "")
   }
 
-  "ref 11" in {
+  "link ref 11" in {
     parse("[fooo]\n[]", testPattern) shouldBe Some(Some(Link("fooo", "/url", Some("title"))), "\n[]")
   }
 
-  "ref 12" in {
+  "link ref 12" in {
     parse("[fooo]", testPattern) shouldBe Some(Some(Link("fooo", "/url", Some("title"))), "")
   }
 
-  "ref 13" in {
+  "link ref 13" in {
     parse("[[bar [foo]", testPattern) shouldBe None
   }
 
-  "ref 14" in {
+  "link ref 14" in {
     parse("[Fooo]", testPattern) shouldBe Some(Some(Link("Fooo", "/url", Some("title"))), "")
   }
 
-  "ref 15" in {
+  "link ref 15" in {
     parse("[fooo] bar", testPattern) shouldBe Some(Some(Link("fooo", "/url", Some("title"))), " bar")
   }
 
