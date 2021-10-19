@@ -8,16 +8,16 @@ object grammar extends Testing {
 
   val ws: Pattern = rep(whitespace)
   val ws1: Pattern = rep1(whitespace)
-  lazy val balanced: Pattern = rep(noneOf('(', ')') | '(' ~ nonStrict(balanced) ~ ')')
+  lazy val balanced: Pattern = rep(noneOf('(', ')', ' ', '\n') | '(' ~ nonStrict(balanced) ~ ')')
   val link: Pattern =
     '[' ~ string(rep(noneOf(']'))) ~ ']' ~ ws ~
       '(' ~ ws ~
-      ('<' ~ string(rep(noneOf('>', '\n'))) ~ '>' | not('<') ~ string(rep(noneOf(')', ' ', '\n')))) ~
-      opt(ws1 ~ ('"' ~ string(rep(noneOf('"'))) ~ '"' | '\'' ~ string(rep(noneOf('\''))) ~ '\'' |
-            '(' ~ string(balanced) ~ ')'),
+      ('<' ~ string(rep(noneOf('>', '\n'))) ~ '>' | not('<') ~ string(balanced)) ~
+      opt(ws1 ~ ('"' ~ string(rep(noneOf('"'))) ~ '"' | '\'' ~ string(rep(noneOf('\''))) ~ '\'' | '(' ~ string(
+            rep(noneOf(')'))) ~ ')'),
           1)(_.head) ~ ws ~ ')' ~ action3(Link)
 }
-
+//'(' ~ string(balanced) ~ ')'
 class LinkParsingTests extends AnyFreeSpec with Matchers {
   import grammar._
 
