@@ -4,6 +4,7 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 
 class LinkParsingTests extends AnyFreeSpec with Matchers {
+
   import LinksImages._
 
   "link 1" in {
@@ -152,5 +153,28 @@ class LinkParsingTests extends AnyFreeSpec with Matchers {
     parse("[fooo][]", link) shouldBe Some(Some(Link("fooo", "/url", Some("title"))), "")
   }
 
-  // todo: from example 553
+  "ref 10" in {
+    parse("[Fooo][]", link) shouldBe Some(Some(Link("Fooo", "/url", Some("title"))), "")
+  }
+
+  "ref 11" in {
+    parse("[fooo]\n[]", link) shouldBe Some(Some(Link("fooo", "/url", Some("title"))), "\n[]")
+  }
+
+  "ref 12" in {
+    parse("[fooo]", link) shouldBe Some(Some(Link("fooo", "/url", Some("title"))), "")
+  }
+
+  "ref 13" in {
+    parse("[[bar [foo]", link) shouldBe None
+  }
+
+  "ref 14" in {
+    parse("[Fooo]", link) shouldBe Some(Some(Link("Fooo", "/url", Some("title"))), "")
+  }
+
+  "ref 15" in {
+    parse("[fooo] bar", link) shouldBe Some(Some(Link("fooo", "/url", Some("title"))), " bar")
+  }
+
 }
