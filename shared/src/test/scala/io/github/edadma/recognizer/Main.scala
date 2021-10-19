@@ -29,7 +29,7 @@ object Main extends App /*with Testing*/ {
 
   import LinksImages._
 
-  println(parse("[bar][]", link))
+  println(parse("[bar][]", linkPattern))
 
 //  run(StringInput("ababab"), string(rep("ab")) ~ string(rep(any))) match {
 //    case None => println("no match")
