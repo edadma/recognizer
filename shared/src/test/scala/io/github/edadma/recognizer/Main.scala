@@ -2,7 +2,7 @@ package io.github.edadma.recognizer
 
 import scala.annotation.tailrec
 
-object Main extends App with Testing {
+object Main extends App /*with Testing*/ {
 
 //  case class Link(text: String, url: String, title: Option[String])
 //  case class Image(text: String, url: String, title: Option[String])
@@ -26,10 +26,10 @@ object Main extends App with Testing {
 //  runlimit = 20
 
 //  println(parse(s, image | link | imageLink))
-  lazy val balanced: Pattern =
-    rep(noneOf('(', ')') | '(' ~ nonStrict(balanced) ~ ')')
 
-  println(parse("(foo(and(bar)))", '(' ~ string(balanced) ~ ')'))
+  import LinksImages._
+
+  println(parse("[bar][]", link))
 
 //  run(StringInput("ababab"), string(rep("ab")) ~ string(rep(any))) match {
 //    case None => println("no match")

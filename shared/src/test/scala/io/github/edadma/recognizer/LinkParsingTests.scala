@@ -116,4 +116,8 @@ class LinkParsingTests extends AnyFreeSpec with Matchers {
     parse("[link [bar](/uri)", link) shouldBe None
   }
 
+  "ref 1" in {
+    parse("[foo][bar]", link) shouldBe Some(Some(Link("foo", "/url", Some("title"))), "")
+  }
+
 }

@@ -5,7 +5,6 @@ import scala.collection.mutable
 object LinksImages extends Testing {
 
   case class Link(text: String, url: String, title: Option[String])
-  case class RefLink(text: Option[String], label: String)
   case class LinkInfo(url: String, title: Option[String])
 
   val refs = new mutable.HashMap[String, LinkInfo]
@@ -24,13 +23,19 @@ object LinksImages extends Testing {
             rep(noneOf(')'))) ~ ')'),
           1)(_.head) ~ ws ~ ')' ~ action3(Link)
   val refLinkPattern: Pattern =
-    '[' ~ string(balancedText) ~ ']' ~ '[' ~ string(noneOf('[', ']')) ~
-      test(values => values.nonEmpty && refs.contains(values.head.toString.toLowerCase)) ~
-      action((s: String) => Some(s)) ~ ']' ~ action2(RefLink) |
+    '[' ~ string(balancedText) ~ ']' ~ '[' ~ string(rep(noneOf('[', ']'))) ~
+      test(values => values.nonEmpty && refs.contains(values.head.toString.toLowerCase)) ~ ']' ~ action2[String, String] {
+      (t, l) =>
+        val LinkInfo(url, title) = refs(l.toLowerCase)
+
+        Link(t, url, title)
+    } |
       '[' ~ string(balancedText) ~
-        test(values => values.nonEmpty && refs.contains(values.head.toString)) ~ ']' ~ opt("[]") ~ push(None) ~ action2(
-        RefLink)
-//  val refLinkPattern: Pattern = '[' ~ string(balancedText) ~ ']' ~
-//    opt("[]" ~ push("") | '[' ~ string(noneOf('[', ']')) ~ ']') ~ action2(RefLink)
+        test(values => values.nonEmpty && refs.contains(values.head.toString.toLowerCase)) ~ ']' ~
+        opt("[]") ~ action[String] { s =>
+        val LinkInfo(url, title) = refs(s.toLowerCase)
+
+        Link(s, url, title)
+      }
   val link: Pattern = linkPattern | refLinkPattern
 }
