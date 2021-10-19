@@ -14,6 +14,7 @@ object LinksImages extends Testing {
   refs("ref[") = LinkInfo("/uri", None)
   refs("") = LinkInfo("/uri", None)
   refs("\n") = LinkInfo("/uri", None)
+  refs("fooo") = LinkInfo("/url", Some("title"))
 
   val ws: Pattern = rep(whitespace)
   val ws1: Pattern = rep1(whitespace)
