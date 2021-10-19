@@ -10,11 +10,16 @@ object LinksImages extends Testing {
   val refs = new mutable.HashMap[String, LinkInfo]
 
   refs("bar") = LinkInfo("/url", Some("title"))
+  refs("ref") = LinkInfo("/uri", None)
+  refs("ref[") = LinkInfo("/uri", None)
+  refs("") = LinkInfo("/uri", None)
+  refs("\n") = LinkInfo("/uri", None)
 
   val ws: Pattern = rep(whitespace)
   val ws1: Pattern = rep1(whitespace)
   lazy val balancedDestination: Pattern = rep(noneOf('(', ')', ' ', '\n') | '(' ~ nonStrict(balancedDestination) ~ ')')
   lazy val balancedText: Pattern = rep(noneOf('[', ']') | '[' ~ nonStrict(balancedText) ~ ']')
+  lazy val balancedText1: Pattern = rep1(noneOf('[', ']') | '[' ~ nonStrict(balancedText) ~ ']')
   val linkPattern: Pattern =
     '[' ~ string(balancedText) ~ ']' ~
       '(' ~ ws ~
@@ -23,15 +28,20 @@ object LinksImages extends Testing {
             rep(noneOf(')'))) ~ ')'),
           1)(_.head) ~ ws ~ ')' ~ action3(Link)
   val refLinkPattern: Pattern =
-    '[' ~ string(balancedText) ~ ']' ~ '[' ~ string(rep(noneOf('[', ']'))) ~
-      test(values => values.nonEmpty && refs.contains(values.head.toString.toLowerCase)) ~ ']' ~ action2[String, String] {
-      (t, l) =>
-        val LinkInfo(url, title) = refs(l.toLowerCase)
+    '[' ~ string(balancedText) ~ ']' ~ '[' ~ string(rep1(noneOf('[', ']'))) ~
+      test(
+        values =>
+          values.nonEmpty && values.head.toString.exists(!_.isWhitespace) && refs.contains(
+            values.head.toString.toLowerCase)) ~ ']' ~ action2[String, String] { (t, l) =>
+      val LinkInfo(url, title) = refs(l.toLowerCase)
 
-        Link(t, url, title)
+      Link(t, url, title)
     } |
-      '[' ~ string(balancedText) ~
-        test(values => values.nonEmpty && refs.contains(values.head.toString.toLowerCase)) ~ ']' ~
+      '[' ~ string(balancedText1) ~
+        test(
+          values =>
+            values.nonEmpty && values.head.toString.exists(!_.isWhitespace) && refs.contains(
+              values.head.toString.toLowerCase)) ~ ']' ~
         opt("[]") ~ action[String] { s =>
         val LinkInfo(url, title) = refs(s.toLowerCase)
 
