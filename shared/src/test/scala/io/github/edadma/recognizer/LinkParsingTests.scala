@@ -85,4 +85,20 @@ class LinkParsingTests extends AnyFreeSpec with Matchers {
     parse("[link](foo(and(bar)))", link) shouldBe Some(Some(Link("link", "foo(and(bar))", None)), "")
   }
 
+  "link 17" in {
+    parse("[link](foo(and(bar))", link) shouldBe None
+  }
+
+  "link 18" in {
+    parse("[link](<foo(and(bar)>)", link) shouldBe Some(Some(Link("link", "foo(and(bar)", None)), "")
+  }
+
+  "link 19" in {
+    parse("[link](\"title\")", link) shouldBe Some(Some(Link("link", "\"title\"", None)), "")
+  }
+
+  "link 20" in {
+    parse("[link](/url\"title\")", link) shouldBe None
+  }
+
 }
