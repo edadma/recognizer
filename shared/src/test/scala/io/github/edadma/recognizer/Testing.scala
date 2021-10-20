@@ -1,6 +1,6 @@
 package io.github.edadma.recognizer
 
-trait Testing extends CharRecognizer {
+trait Testing extends CharRecognizer[Char] {
 
   def parse(s: String, p: Pattern): Option[(Option[Any], String)] = {
     run(StringInput(s), p) map {

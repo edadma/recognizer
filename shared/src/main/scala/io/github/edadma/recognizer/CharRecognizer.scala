@@ -2,7 +2,7 @@ package io.github.edadma.recognizer
 
 import scala.language.implicitConversions
 
-trait CharRecognizer extends Recognizer[Char, Char] {
+trait CharRecognizer[W] extends Recognizer[W, Char] {
 
   implicit def str(s: String): Pattern = Match(s.toList)
 
