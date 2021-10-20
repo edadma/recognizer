@@ -2,13 +2,25 @@ package io.github.edadma.recognizer
 
 import scala.collection.mutable.ListBuffer
 
-trait Input[E] {
+trait Input[W, E] {
   def eoi: Boolean
   def elem: E
-  def next: Input[E]
-  def rest: List[E]
+  def wrapper: W
+  def next: Input[W, E]
 
-  def list(end: Input[E]): Option[List[E]] = {
+  def rest: List[E] = {
+    val buf = new ListBuffer[E]
+    var e = this
+
+    while (!e.eoi) {
+      buf += e.elem
+      e = e.next
+    }
+
+    buf.toList
+  }
+
+  def listElem(end: Input[W, E]): Option[List[E]] = {
     val buf = new ListBuffer[E]
     var e = this
 
@@ -20,4 +32,19 @@ trait Input[E] {
     if (e.eoi && !end.eoi) None
     else Some(buf.toList)
   }
+
+  def listWrapper(end: Input[W, E]): Option[List[W]] = {
+    val buf = new ListBuffer[W]
+    var e = this
+
+    while (!e.eoi && e != end) {
+      buf += e.wrapper
+      e = e.next
+    }
+
+    if (e.eoi && !end.eoi) None
+    else Some(buf.toList)
+  }
+
+  override def toString: String = s"<${rest take 10 mkString ", "}>"
 }

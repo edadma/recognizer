@@ -5,9 +5,9 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.language.{implicitConversions, postfixOps}
 
-trait Recognizer[E] {
+trait Recognizer[W, E] {
 
-  type I = Input[E]
+  type I = Input[W, E]
 
   implicit def elem(e: E): Pattern = Clas(_ == e)
 
@@ -68,7 +68,7 @@ trait Recognizer[E] {
 
   def capture(p: Pattern): Pattern =
     pointer ~ p ~ pointer ~ transform(2) {
-      case Seq(start, end) => start.asInstanceOf[I].list(end.asInstanceOf[I]).get
+      case Seq(start, end) => start.asInstanceOf[I].listElem(end.asInstanceOf[I]).get
     }
 
   def transform(arity: Int)(f: Seq[Any] => Any): Pattern = Transform(arity, f)
