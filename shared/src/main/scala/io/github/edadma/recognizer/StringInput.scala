@@ -5,7 +5,7 @@ case class StringInput(s: String, idx: Int = 0) extends Input[Char, Char] {
 
   def elem: Char = s(idx)
 
-  def wrapper: Char = s(idx)
+  def wrapped: Char = s(idx)
 
   def next: StringInput = StringInput(s, idx + 1)
 }

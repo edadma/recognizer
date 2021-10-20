@@ -5,7 +5,7 @@ import scala.collection.mutable.ListBuffer
 trait Input[W, E] {
   def eoi: Boolean
   def elem: E
-  def wrapper: W
+  def wrapped: W
   def next: Input[W, E]
 
   def rest: List[E] = {
@@ -33,12 +33,12 @@ trait Input[W, E] {
     else Some(buf.toList)
   }
 
-  def listWrapper(end: Input[W, E]): Option[List[W]] = {
+  def listWrapped(end: Input[W, E]): Option[List[W]] = {
     val buf = new ListBuffer[W]
     var e = this
 
     while (!e.eoi && e != end) {
-      buf += e.wrapper
+      buf += e.wrapped
       e = e.next
     }
 
