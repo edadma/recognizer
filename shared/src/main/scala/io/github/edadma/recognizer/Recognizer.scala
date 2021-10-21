@@ -94,7 +94,7 @@ trait Recognizer[W, E] {
     def |(that: Pattern): Pattern = Alternative(this, that)
   }
 
-  protected case object Fence extends Pattern
+  protected case object Fence extends Pattern with Choice
   protected case object Cut extends Pattern
   protected case object Nop extends Pattern
   protected case object Fail extends Pattern
@@ -111,7 +111,6 @@ trait Recognizer[W, E] {
 
   protected trait Choice
   protected case class ChoicePoint(input: I, pattern: Pattern, call: List[Pattern], value: List[Any]) extends Choice
-  protected case object Ceiling extends Choice
 
   var runlimit: Int = Int.MaxValue
 
@@ -123,19 +122,18 @@ trait Recognizer[W, E] {
     private[recognizer] val choice = new mutable.Stack[Choice]
     private[recognizer] var call: List[Pattern] = Nil
     private[recognizer] var value: List[Any] = Nil
-
-    push(pat)
+    private[recognizer] var ip: Pattern = pat
 
     def values: List[Any] = value
 
     private[recognizer] def push(p: Pattern): Unit = call = p :: call
 
-    private[recognizer] def pop: Pattern =
-      call match {
+    private[recognizer] def advance(): Unit =
+      ip = call match {
         case h :: t =>
           call = t
           h
-        case _ => sys.error("no more patterns")
+        case Nil => null
       }
 
     def backtrack: Boolean = {
@@ -144,10 +142,11 @@ trait Recognizer[W, E] {
         choice.pop() match {
           case ChoicePoint(p, n, c, v) =>
             pointer = p
-            call = n :: c
+            call = c
             value = v
+            ip = n
             true
-          case Ceiling => backtrack
+          case Fence => backtrack
         }
       } else false
     }
@@ -171,76 +170,87 @@ trait Recognizer[W, E] {
         }
       }
 
-      if (state.call.nonEmpty) {
-        debug(s"run ${state.call} ${state.pointer}")
-        state.pop match {
-          case Cut =>
-            debug(s"cut")
-            while (state.choice.top.isInstanceOf[ChoicePoint]) state.choice.pop()
+      debug(s"run ${state.call} ${state.pointer}")
 
-            if (state.choice.nonEmpty) {
-              state.choice.pop()
-              run
-            } else sys.error("ceiling not encountered during cut")
-          case Fence =>
-            state.choice push Ceiling
-            run
-          case Alternative(p, q) =>
-            debug(s"alternative $p  $q")
-            state.choice push ChoicePoint(state.pointer, q, state.call, state.value)
-            state.push(p)
-            run
-          case Match(s) =>
-            debug(s"match $s")
-            val it = s.iterator
+      state.ip match {
+        case null => true
+        case Cut =>
+          debug(s"cut")
+          while (state.choice.top.isInstanceOf[ChoicePoint]) state.choice.pop()
 
-            while (it.hasNext && !state.pointer.eoi && state.pointer.elem == it.next()) {
-              state.pointer = state.pointer.next
-            }
+          if (state.choice.nonEmpty) {
+            state.choice.pop()
+            state.advance()
+            run
+          } else sys.error("fence not encountered during cut")
+        case Fence =>
+          state.choice push Fence
+          state.advance()
+          run
+        case Alternative(p, q) =>
+          debug(s"alternative $p  $q")
+          state.choice push ChoicePoint(state.pointer, q, state.call, state.value)
+          state.ip = p
+          run
+        case Match(s) =>
+          debug(s"match $s")
+          val it = s.iterator
 
-            if (!it.hasNext) run
-            else if (state.backtrack) run
-            else false
-          case Clas(c) =>
-            if (!state.pointer.eoi && c(state.pointer.elem)) {
-              state.pointer = state.pointer.next
-              run
-            } else if (state.backtrack) run
-            else false
-          case Push(v) =>
-            state.value = v :: state.value
-            run
-          case Transform(arity, f) =>
-            debug(s"transform before ${state.value}")
+          while (it.hasNext && !state.pointer.eoi && state.pointer.elem == it.next()) {
+            state.pointer = state.pointer.next
+          }
 
-            val (args, rest) = state.value splitAt arity
+          if (!it.hasNext) {
+            state.advance()
+            run
+          } else if (state.backtrack) run
+          else false
+        case Clas(c) =>
+          if (!state.pointer.eoi && c(state.pointer.elem)) {
+            state.pointer = state.pointer.next
+            state.advance()
+            run
+          } else if (state.backtrack) run
+          else false
+        case Push(v) =>
+          state.value = v :: state.value
+          state.advance()
+          run
+        case Transform(arity, f) =>
+          debug(s"transform before ${state.value}")
 
-            state.value = f(args.reverse) :: rest
-            debug(s"          after  ${state.value}")
+          val (args, rest) = state.value splitAt arity
+
+          state.value = f(args.reverse) :: rest
+          debug(s"          after  ${state.value}")
+          state.advance()
+          run
+        case Sequence(p, q) =>
+          debug(s"sequence $p  $q")
+          state.ip = p
+          state.push(q)
+          run
+        case Nop =>
+          state.advance()
+          run
+        case Fail =>
+          debug(s"fail")
+          if (state.backtrack) run
+          else false
+        case Pointer =>
+          state.value = state.pointer :: state.value
+          state.advance()
+          run
+        case NonStrict(p) =>
+          state.ip = p()
+          run
+        case Test(c) =>
+          if (c(state.value)) {
+            state.advance()
             run
-          case Sequence(p, q) =>
-            debug(s"sequence $p  $q")
-            state.push(q)
-            state.push(p)
-            run
-          case Nop => run
-          case Fail =>
-            debug(s"fail")
-            if (state.backtrack) run
-            else false
-          case Pointer =>
-            state.value = state.pointer :: state.value
-            run
-          case NonStrict(p) =>
-            state.push(p())
-            run
-          case Test(c) =>
-            if (c(state.value)) run
-            else if (state.backtrack) run
-            else false
-        }
-      } else
-        true
+          } else if (state.backtrack) run
+          else false
+      }
     }
 
     if (run) Some((state.value.headOption, state.pointer, state))
