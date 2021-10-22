@@ -72,8 +72,50 @@ trait Recognizer[W, E] {
         list
     }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
 
+  def rep1[A](p: Pattern)(f: A => Any): Pattern =
+    push(new ListBuffer[Any]) ~ rep1(p ~ action(f) ~ transform(2) {
+      case Seq(list: ListBuffer[_], item) =>
+        list.asInstanceOf[ListBuffer[Any]] += item
+        list
+    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+
+  def repr1(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+    push(new ListBuffer[Any]) ~ repr1(p ~ transform(arity)(f) ~ transform(2) {
+      case Seq(list: ListBuffer[_], item) =>
+        list.asInstanceOf[ListBuffer[Any]] += item
+        list
+    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+
+  def repr1[A](p: Pattern)(f: A => Any): Pattern =
+    push(new ListBuffer[Any]) ~ repr1(p ~ action(f) ~ transform(2) {
+      case Seq(list: ListBuffer[_], item) =>
+        list.asInstanceOf[ListBuffer[Any]] += item
+        list
+    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+
   def rep(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     push(new ListBuffer[Any]) ~ rep(p ~ transform(arity)(f) ~ transform(2) {
+      case Seq(list: ListBuffer[_], item) =>
+        list.asInstanceOf[ListBuffer[Any]] += item
+        list
+    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+
+  def rep[A](p: Pattern)(f: A => Any): Pattern =
+    push(new ListBuffer[Any]) ~ rep(p ~ action(f) ~ transform(2) {
+      case Seq(list: ListBuffer[_], item) =>
+        list.asInstanceOf[ListBuffer[Any]] += item
+        list
+    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+
+  def repr(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+    push(new ListBuffer[Any]) ~ repr(p ~ transform(arity)(f) ~ transform(2) {
+      case Seq(list: ListBuffer[_], item) =>
+        list.asInstanceOf[ListBuffer[Any]] += item
+        list
+    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+
+  def repr[A](p: Pattern)(f: A => Any): Pattern =
+    push(new ListBuffer[Any]) ~ repr(p ~ action(f) ~ transform(2) {
       case Seq(list: ListBuffer[_], item) =>
         list.asInstanceOf[ListBuffer[Any]] += item
         list
@@ -168,6 +210,28 @@ trait Recognizer[W, E] {
       } else false
     }
   }
+
+  def runAll(input: I, pat: Pattern): List[(Option[Any], I)] =
+    run(input, pat) match {
+      case None => Nil
+      case Some(r) =>
+        val buf = new ListBuffer[(Option[Any], I)]
+
+        result(r)
+
+        @tailrec
+        def result(r: (Option[Any], I, Runstate)): Unit =
+          r match {
+            case (v, u, s) =>
+              buf += ((v, u))
+              rerun(s) match {
+                case Some(r) => result(r)
+                case None    =>
+              }
+          }
+
+        buf.toList
+    }
 
   def run(input: I, pat: Pattern): Option[(Option[Any], I, Runstate)] = run(new Runstate(input, pat))
 

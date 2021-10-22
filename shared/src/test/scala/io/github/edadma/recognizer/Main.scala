@@ -1,8 +1,8 @@
 package io.github.edadma.recognizer
 
-import scala.annotation.tailrec
+import pprint._
 
-object Main extends App /*with Testing*/ {
+object Main extends App with Testing {
 
 //  case class Link(text: String, url: String, title: Option[String])
 //  case class Image(text: String, url: String, title: Option[String])
@@ -27,11 +27,13 @@ object Main extends App /*with Testing*/ {
 
 //  println(parse(s, image | link | imageLink))
 
-  import LinksImages._
+//  import LinksImages._
+//
+//  println(parse("[bar][]", linkPattern))
 
-  println(parse("[bar][]", linkPattern))
+  pprintln(runAll(StringInput("abc"), string(repr(any)) ~ string(rep(any)) ~ action2[String, String](Tuple2.apply)))
 
-//  run(StringInput("ababab"), string(rep("ab")) ~ string(rep(any))) match {
+  //  run(StringInput("ababab"), string(rep("ab")) ~ string(rep(any))) match {
 //    case None => println("no match")
 //    case Some(r) =>
 //      result(r)
