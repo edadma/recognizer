@@ -16,7 +16,7 @@ trait CharRecognizer[W] extends Recognizer[W, Char] {
 
   def string(p: Pattern): Pattern =
     pointer ~ p ~ pointer ~ transform(2) {
-      case Seq(start, end) => start.asInstanceOf[I].listElem(end.asInstanceOf[I]).get.mkString
+      case Seq(start, end) => start.asInstanceOf[I].listElem(end.asInstanceOf[I]).mkString
     }
 
 }

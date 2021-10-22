@@ -20,7 +20,7 @@ trait Input[W, E] {
     buf.toList
   }
 
-  def listElem(end: Input[W, E]): Option[List[E]] = {
+  def listElem(end: Input[W, E]): List[E] = {
     val buf = new ListBuffer[E]
     var e = this
 
@@ -29,11 +29,11 @@ trait Input[W, E] {
       e = e.next
     }
 
-    if (e.eoi && !end.eoi) None
-    else Some(buf.toList)
+    if (e.eoi && !end.eoi) sys.error(s"listElem: hit eoi unexpectedly: end: $end")
+    else buf.toList
   }
 
-  def listWrapped(end: Input[W, E]): Option[List[W]] = {
+  def listWrapped(end: Input[W, E]): List[W] = {
     val buf = new ListBuffer[W]
     var e = this
 
@@ -42,8 +42,8 @@ trait Input[W, E] {
       e = e.next
     }
 
-    if (e.eoi && !end.eoi) None
-    else Some(buf.toList)
+    if (e.eoi && !end.eoi) sys.error(s"listElem: hit eoi unexpectedly: end: $end")
+    else buf.toList
   }
 
   override def toString: String = s"<${rest take 10 mkString ", "}>"
