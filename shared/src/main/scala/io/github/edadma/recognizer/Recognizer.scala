@@ -36,6 +36,15 @@ trait Recognizer[W, E] {
   def opt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     p ~ transform(arity)(args => Some(f(args))) | push(None)
 
+  def opt[A](p: Pattern)(f: A => Any): Pattern = p ~ action[A](a => Some(f(a))) | push(None)
+
+  def optr(p: Pattern): Pattern = nop | p
+
+  def optr(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+    push(None) | p ~ transform(arity)(args => Some(f(args)))
+
+  def optr[A](p: Pattern)(f: A => Any): Pattern = push(None) | p ~ action[A](a => Some(f(a)))
+
   def nonStrict(p: => Pattern): Pattern = NonStrict(() => p)
 
   def test(c: List[Any] => Boolean): Pattern = Test(c)
@@ -46,7 +55,15 @@ trait Recognizer[W, E] {
     pat
   }
 
+  def repr1(p: Pattern): Pattern = {
+    lazy val pat: Pattern = p ~ optr(nonStrict(pat))
+
+    pat
+  }
+
   def rep(p: Pattern): Pattern = opt(rep1(p))
+
+  def repr(p: Pattern): Pattern = optr(repr1(p))
 
   def rep1(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     push(new ListBuffer[Any]) ~ rep1(p ~ transform(arity)(f) ~ transform(2) {
