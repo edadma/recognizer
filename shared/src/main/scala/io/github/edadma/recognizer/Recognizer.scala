@@ -33,17 +33,21 @@ trait Recognizer[W, E] {
 
   def opt(p: Pattern): Pattern = p | nop
 
-  def opt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+  def optt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     p ~ transform(arity)(args => Some(f(args))) | push(None)
 
-  def opt[A](p: Pattern)(f: A => Any): Pattern = p ~ action[A](a => Some(f(a))) | push(None)
+  def opta[A](p: Pattern)(f: A => Any): Pattern = p ~ action[A](a => Some(f(a))) | push(None)
+
+  def opti[A](p: Pattern): Pattern = opta[Any](p)(identity)
 
   def optr(p: Pattern): Pattern = nop | p
 
-  def optr(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+  def optrt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     push(None) | p ~ transform(arity)(args => Some(f(args)))
 
-  def optr[A](p: Pattern)(f: A => Any): Pattern = push(None) | p ~ action[A](a => Some(f(a)))
+  def optra[A](p: Pattern)(f: A => Any): Pattern = push(None) | p ~ action[A](a => Some(f(a)))
+
+  def optri(p: Pattern): Pattern = optra[Any](p)(identity)
 
   def nonStrict(p: => Pattern): Pattern = NonStrict(() => p)
 
@@ -65,49 +69,55 @@ trait Recognizer[W, E] {
 
   def repr(p: Pattern): Pattern = optr(repr1(p))
 
-  def rep1(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+  def rep1t(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     push(new ListBuffer[Any]) ~ rep1(p ~ transform(arity)(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
       list += item
       list
     }) ~ action[ListBuffer[Any]](_.toList)
 
-  def rep1[A](p: Pattern)(f: A => Any): Pattern =
+  def rep1a[A](p: Pattern)(f: A => Any): Pattern =
     push(new ListBuffer[Any]) ~ rep1(p ~ action(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
       list += item
       list
     }) ~ action[ListBuffer[Any]](_.toList)
 
-  def repr1(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+  def rep1i(p: Pattern): Pattern = rep1a[Any](p)(identity)
+
+  def repr1t(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     push(new ListBuffer[Any]) ~ repr1(p ~ transform(arity)(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
       list += item
       list
     }) ~ action[ListBuffer[Any]](_.toList)
 
-  def repr1[A](p: Pattern)(f: A => Any): Pattern =
+  def repr1a[A](p: Pattern)(f: A => Any): Pattern =
     push(new ListBuffer[Any]) ~ repr1(p ~ action(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
       list += item
       list
     }) ~ action[ListBuffer[Any]](_.toList)
 
-  def rep(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+  def repr1i(p: Pattern): Pattern = repr1a[Any](p)(identity)
+
+  def rept(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     push(new ListBuffer[Any]) ~ rep(p ~ transform(arity)(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
       list += item
       list
     }) ~ action[ListBuffer[Any]](_.toList)
 
-  def rep[A](p: Pattern)(f: A => Any): Pattern =
+  def repa[A](p: Pattern)(f: A => Any): Pattern =
     push(new ListBuffer[Any]) ~ rep(p ~ action(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
       list += item
       list
     }) ~ action[ListBuffer[Any]](_.toList)
 
-  def repr(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
+  def repi(p: Pattern): Pattern = repa[Any](p)(identity)
+
+  def reprt(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
     push(new ListBuffer[Any]) ~ repr(p ~ transform(arity)(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
       list += item
       list
     }) ~ action[ListBuffer[Any]](_.toList)
 
-  def repr[A](p: Pattern)(f: A => Any): Pattern =
+  def repra[A](p: Pattern)(f: A => Any): Pattern =
     push(new ListBuffer[Any]) ~ repr(p ~ action(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
       list += item
       list
@@ -118,6 +128,8 @@ trait Recognizer[W, E] {
   def pointer: Pattern = Pointer
 
   def capture(p: Pattern)(action: (I, I) => Any): Pattern = pointer ~ p ~ pointer ~ action2[I, I](action)
+
+  def captureWrapped(p: Pattern): Pattern = capture(p)(_.listWrapped(_))
 
   def transform(arity: Int)(f: Seq[Any] => Any): Pattern = Transform(arity, f)
 
