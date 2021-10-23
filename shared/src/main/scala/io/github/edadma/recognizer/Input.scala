@@ -46,5 +46,7 @@ trait Input[W, E] {
     else buf.toList
   }
 
+  def equals(obj: Any): Boolean
+
   override def toString: String = s"<${rest take 10 mkString ", "}>"
 }

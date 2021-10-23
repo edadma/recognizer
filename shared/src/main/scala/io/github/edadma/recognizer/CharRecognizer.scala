@@ -6,17 +6,30 @@ trait CharRecognizer[W] extends Recognizer[W, Char] {
 
   implicit def str(s: String): Pattern = Match(s.toList)
 
-  def alpha: Pattern = clas(_.isLetter)
+  def kw(s: String): Pattern = s ~ not(alphanum) ~ ws
 
-  def alphanum: Pattern = clas(_.isLetterOrDigit)
+  def sym(s: String): Pattern = string(s) ~ ws
 
-  def digit: Pattern = clas(_.isDigit)
+  //  def number: Pattern =
+  //    (rep(digit) ~ '.' ~ digits | digits ~ '.') ~
+  //      opt((elem('e') | 'E') ~ opt(elem('+') | '-') ~ digits) |
+  //      digits
 
-  def whitespace: Pattern = clas(_.isWhitespace)
+  val alpha: Pattern = clas(_.isLetter)
 
-  def string(p: Pattern): Pattern =
-    pointer ~ p ~ pointer ~ transform(2) {
-      case Seq(start, end) => start.asInstanceOf[I].listElem(end.asInstanceOf[I]).mkString
-    }
+  val alphanum: Pattern = clas(_.isLetterOrDigit)
+
+  val digit: Pattern = clas(_.isDigit)
+
+  val digits: Pattern = rep1(digit)
+
+  val whitespace: Pattern = clas(_.isWhitespace)
+
+  val ws: Pattern = rep(whitespace)
+  val ws1: Pattern = rep1(whitespace)
+
+  val ident: Pattern = string((alpha | '_') ~ rep(alphanum | '_')) ~ ws
+
+  def string(p: Pattern): Pattern = capture(p)(_.listElem(_).mkString)
 
 }

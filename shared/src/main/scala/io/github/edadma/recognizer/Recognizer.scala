@@ -66,73 +66,60 @@ trait Recognizer[W, E] {
   def repr(p: Pattern): Pattern = optr(repr1(p))
 
   def rep1(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
-    push(new ListBuffer[Any]) ~ rep1(p ~ transform(arity)(f) ~ transform(2) {
-      case Seq(list: ListBuffer[_], item) =>
-        list.asInstanceOf[ListBuffer[Any]] += item
-        list
-    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+    push(new ListBuffer[Any]) ~ rep1(p ~ transform(arity)(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
+      list += item
+      list
+    }) ~ action[ListBuffer[Any]](_.toList)
 
   def rep1[A](p: Pattern)(f: A => Any): Pattern =
-    push(new ListBuffer[Any]) ~ rep1(p ~ action(f) ~ transform(2) {
-      case Seq(list: ListBuffer[_], item) =>
-        list.asInstanceOf[ListBuffer[Any]] += item
-        list
-    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+    push(new ListBuffer[Any]) ~ rep1(p ~ action(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
+      list += item
+      list
+    }) ~ action[ListBuffer[Any]](_.toList)
 
   def repr1(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
-    push(new ListBuffer[Any]) ~ repr1(p ~ transform(arity)(f) ~ transform(2) {
-      case Seq(list: ListBuffer[_], item) =>
-        list.asInstanceOf[ListBuffer[Any]] += item
-        list
-    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+    push(new ListBuffer[Any]) ~ repr1(p ~ transform(arity)(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
+      list += item
+      list
+    }) ~ action[ListBuffer[Any]](_.toList)
 
   def repr1[A](p: Pattern)(f: A => Any): Pattern =
-    push(new ListBuffer[Any]) ~ repr1(p ~ action(f) ~ transform(2) {
-      case Seq(list: ListBuffer[_], item) =>
-        list.asInstanceOf[ListBuffer[Any]] += item
-        list
-    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+    push(new ListBuffer[Any]) ~ repr1(p ~ action(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
+      list += item
+      list
+    }) ~ action[ListBuffer[Any]](_.toList)
 
   def rep(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
-    push(new ListBuffer[Any]) ~ rep(p ~ transform(arity)(f) ~ transform(2) {
-      case Seq(list: ListBuffer[_], item) =>
-        list.asInstanceOf[ListBuffer[Any]] += item
-        list
-    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+    push(new ListBuffer[Any]) ~ rep(p ~ transform(arity)(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
+      list += item
+      list
+    }) ~ action[ListBuffer[Any]](_.toList)
 
   def rep[A](p: Pattern)(f: A => Any): Pattern =
-    push(new ListBuffer[Any]) ~ rep(p ~ action(f) ~ transform(2) {
-      case Seq(list: ListBuffer[_], item) =>
-        list.asInstanceOf[ListBuffer[Any]] += item
-        list
-    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+    push(new ListBuffer[Any]) ~ rep(p ~ action(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
+      list += item
+      list
+    }) ~ action[ListBuffer[Any]](_.toList)
 
   def repr(p: Pattern, arity: Int)(f: Seq[Any] => Any): Pattern =
-    push(new ListBuffer[Any]) ~ repr(p ~ transform(arity)(f) ~ transform(2) {
-      case Seq(list: ListBuffer[_], item) =>
-        list.asInstanceOf[ListBuffer[Any]] += item
-        list
-    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+    push(new ListBuffer[Any]) ~ repr(p ~ transform(arity)(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
+      list += item
+      list
+    }) ~ action[ListBuffer[Any]](_.toList)
 
   def repr[A](p: Pattern)(f: A => Any): Pattern =
-    push(new ListBuffer[Any]) ~ repr(p ~ action(f) ~ transform(2) {
-      case Seq(list: ListBuffer[_], item) =>
-        list.asInstanceOf[ListBuffer[Any]] += item
-        list
-    }) ~ transform(_.asInstanceOf[Seq[ListBuffer[Any]]].head.toList)
+    push(new ListBuffer[Any]) ~ repr(p ~ action(f) ~ action2[ListBuffer[Any], Any] { (list, item) =>
+      list += item
+      list
+    }) ~ action[ListBuffer[Any]](_.toList)
 
   def push(v: Any): Pattern = Push(v)
 
   def pointer: Pattern = Pointer
 
-  def capture(p: Pattern): Pattern =
-    pointer ~ p ~ pointer ~ transform(2) {
-      case Seq(start, end) => start.asInstanceOf[I].listElem(end.asInstanceOf[I])
-    }
+  def capture(p: Pattern)(action: (I, I) => Any): Pattern = pointer ~ p ~ pointer ~ action2[I, I](action)
 
   def transform(arity: Int)(f: Seq[Any] => Any): Pattern = Transform(arity, f)
-
-  def transform(f: Seq[Any] => Any): Pattern = Transform(1, f)
 
   def action[A](f: A => Any): Pattern = transform(1) { case Seq(a) => f(a.asInstanceOf[A]) }
 

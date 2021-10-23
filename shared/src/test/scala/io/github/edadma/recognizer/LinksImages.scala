@@ -17,8 +17,6 @@ object LinksImages extends Testing {
   refs("\n") = LinkInfo("/uri", None)
   refs("fooo") = LinkInfo("/url", Some("title"))
 
-  val ws: Pattern = rep(whitespace)
-  val ws1: Pattern = rep1(whitespace)
   lazy val balancedDestination: Pattern = rep(noneOf('(', ')', ' ', '\n') | '(' ~ nonStrict(balancedDestination) ~ ')')
   lazy val balancedText: Pattern = rep(noneOf('[', ']') | '[' ~ nonStrict(balancedText) ~ ']')
   lazy val balancedText1: Pattern = rep1(noneOf('[', ']') | '[' ~ nonStrict(balancedText) ~ ']')
