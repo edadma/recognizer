@@ -29,7 +29,7 @@ object LinksImages extends Testing {
           rep(noneOf(')'))) ~ ')')) ~ ws ~ ')' ~ action3(Link)
   val refLinkPattern: Pattern =
     '[' ~ string(balancedText) ~ ']' ~ '[' ~ string(rep1(noneOf('[', ']'))) ~
-      test(
+      testValues(
         values =>
           values.nonEmpty && values.head.toString.exists(!_.isWhitespace) && refs.contains(
             values.head.toString.toLowerCase)) ~ ']' ~ action2[String, String] { (t, l) =>
@@ -38,7 +38,7 @@ object LinksImages extends Testing {
       Link(t, url, title)
     } |
       '[' ~ string(balancedText1) ~
-        test(
+        testValues(
           values =>
             values.nonEmpty && values.head.toString.exists(!_.isWhitespace) && refs.contains(
               values.head.toString.toLowerCase)) ~ ']' ~
@@ -56,7 +56,7 @@ object LinksImages extends Testing {
           rep(noneOf(')'))) ~ ')')) ~ ws ~ ')' ~ action3(Image)
   val refImagePattern: Pattern =
     "![" ~ string(balancedText) ~ ']' ~ '[' ~ string(rep1(noneOf('[', ']'))) ~
-      test(
+      testValues(
         values =>
           values.nonEmpty && values.head.toString.exists(!_.isWhitespace) && refs.contains(
             values.head.toString.toLowerCase)) ~ ']' ~ action2[String, String] { (t, l) =>
@@ -65,7 +65,7 @@ object LinksImages extends Testing {
       Image(t, url, title)
     } |
       "![" ~ string(balancedText1) ~
-        test(
+        testValues(
           values =>
             values.nonEmpty && values.head.toString.exists(!_.isWhitespace) && refs.contains(
               values.head.toString.toLowerCase)) ~ ']' ~

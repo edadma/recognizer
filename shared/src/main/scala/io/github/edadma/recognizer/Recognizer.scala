@@ -51,7 +51,9 @@ trait Recognizer[W, E] {
 
   def nonStrict(p: => Pattern): Pattern = NonStrict(() => p)
 
-  def test(c: List[Any] => Boolean): Pattern = Test(c)
+  def testValues(c: List[Any] => Boolean): Pattern = Test(c)
+
+  def test[A](c: A => Boolean): Pattern = Test(values => c(values.head.asInstanceOf[A]))
 
   def rep1(p: Pattern): Pattern = {
     lazy val pat: Pattern = p ~ opt(nonStrict(pat))
