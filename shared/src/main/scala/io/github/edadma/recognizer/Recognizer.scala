@@ -23,13 +23,13 @@ trait Recognizer[W, E] {
 
   def nop: Pattern = Nop
 
-  def fail: Pattern = Fail
+  def failed: Pattern = Fail
 
   def !! : Pattern = Cut
 
   def fence: Pattern = Fence
 
-  def not(p: Pattern): Pattern = fence ~ (p ~ !! ~ fail | nop)
+  def not(p: Pattern): Pattern = fence ~ (p ~ !! ~ failed | nop)
 
   def opt(p: Pattern): Pattern = p | nop
 

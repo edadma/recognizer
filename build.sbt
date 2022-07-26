@@ -1,30 +1,30 @@
 ThisBuild / licenses += "ISC" -> url("https://opensource.org/licenses/ISC")
 ThisBuild / versionScheme := Some("semver-spec")
 
+publish / skip := true
+
 lazy val recognizer = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
   settings(
     name := "recognizer",
     version := "0.1.0-pre.11",
-    scalaVersion := "2.13.6",
+    scalaVersion := "3.1.3",
     scalacOptions ++=
       Seq(
         "-deprecation", "-feature", "-unchecked",
-        "-language:postfixOps", "-language:implicitConversions", "-language:existentials", "-language:dynamics",
-        "-Xasync"
+        "-language:postfixOps", "-language:implicitConversions", "-language:existentials", "-language:dynamics"
       ),
     organization := "io.github.edadma",
     githubOwner := "edadma",
     githubRepository := name.value,
     mainClass := Some(s"${organization.value}.${name.value}.Main"),
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.9" % "test",
-    libraryDependencies += "io.github.edadma" %%% "cross-platform" % "0.1.1",
-    libraryDependencies += "com.lihaoyi" %%% "pprint" % "0.6.6" % "test",
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.12" % "test",
     publishMavenStyle := true,
     Test / publishArtifact := false,
     licenses += "ISC" -> url("https://opensource.org/licenses/ISC")
   ).
   jvmSettings(
-    libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.0.0" % "provided",
+    libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided",
+    libraryDependencies += "com.lihaoyi" %%% "pprint" % "0.7.0" % "test",
   ).
   nativeSettings(
     nativeLinkStubs := true

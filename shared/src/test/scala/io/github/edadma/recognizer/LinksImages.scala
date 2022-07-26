@@ -26,7 +26,7 @@ object LinksImages extends Testing {
       ('<' ~ string(rep(noneOf('>', '\n'))) ~ '>' | not('<') ~ string(balancedDestination)) ~
       opti(
         ws1 ~ ('"' ~ string(rep(noneOf('"'))) ~ '"' | '\'' ~ string(rep(noneOf('\''))) ~ '\'' | '(' ~ string(
-          rep(noneOf(')'))) ~ ')')) ~ ws ~ ')' ~ action3(Link)
+          rep(noneOf(')'))) ~ ')')) ~ ws ~ ')' ~ action3(Link.apply)
   val refLinkPattern: Pattern =
     '[' ~ string(balancedText) ~ ']' ~ '[' ~ string(rep1(noneOf('[', ']'))) ~
       testValues(
@@ -53,7 +53,7 @@ object LinksImages extends Testing {
       ('<' ~ string(rep(noneOf('>', '\n'))) ~ '>' | not('<') ~ string(balancedDestination)) ~
       opti(
         ws1 ~ ('"' ~ string(rep(noneOf('"'))) ~ '"' | '\'' ~ string(rep(noneOf('\''))) ~ '\'' | '(' ~ string(
-          rep(noneOf(')'))) ~ ')')) ~ ws ~ ')' ~ action3(Image)
+          rep(noneOf(')'))) ~ ')')) ~ ws ~ ')' ~ action3(Image.apply)
   val refImagePattern: Pattern =
     "![" ~ string(balancedText) ~ ']' ~ '[' ~ string(rep1(noneOf('[', ']'))) ~
       testValues(
