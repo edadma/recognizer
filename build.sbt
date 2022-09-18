@@ -6,8 +6,8 @@ publish / skip := true
 lazy val recognizer = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(file(".")).
   settings(
     name := "recognizer",
-    version := "0.1.0-pre.11",
-    scalaVersion := "3.1.3",
+    version := "0.1.0",
+    scalaVersion := "3.2.0",
     scalacOptions ++=
       Seq(
         "-deprecation", "-feature", "-unchecked",
@@ -17,7 +17,7 @@ lazy val recognizer = crossProject(JSPlatform, JVMPlatform, NativePlatform).in(f
     githubOwner := "edadma",
     githubRepository := name.value,
     mainClass := Some(s"${organization.value}.${name.value}.Main"),
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.12" % "test",
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.13" % "test",
     publishMavenStyle := true,
     Test / publishArtifact := false,
     licenses += "ISC" -> url("https://opensource.org/licenses/ISC")
