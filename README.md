@@ -1,4 +1,3 @@
-[![Build Status](https://github.com/edadma/recognizer/actions/workflows/ci.yml/badge.svg)](https://github.com/edadma/recognizer/actions)
 [![Version](https://img.shields.io/badge/version-0.0.1-orange.svg)](https://github.com/edadma/recognizer/releases)
 [![Scala Version](https://img.shields.io/badge/scala-3.6.4-blue.svg)](https://www.scala-lang.org/)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
