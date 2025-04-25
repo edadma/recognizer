@@ -1,0 +1,28 @@
+; `recognizer` codebase
+
+# library code
+./shared/src/main/scala/io/github/edadma/recognizer
+CharRecognizer.scala
+Input.scala
+Recognizer.scala
+StringInput.scala
+
+# test code
+./shared/src/test/scala/io/github/edadma/recognizer
+BasicTests.scala
+ImageParsingTests.scala
+LinkParsingTests.scala
+LinksImages.scala
+PatternPrimitivesTests.scala
+Testing.scala
+
+# build config
+./
+build.sbt
+./project
+build.properties
+plugins.sbt
+
+# docs
+./
+README.md
