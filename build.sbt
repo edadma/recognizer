@@ -7,7 +7,7 @@ lazy val recognizer = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("."))
   .settings(
     name := "recognizer",
-    version := "0.1.0",
+    version := "0.0.1",
     scalaVersion := "3.6.4",
     scalacOptions ++=
       Seq(
