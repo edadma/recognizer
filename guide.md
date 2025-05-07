@@ -190,6 +190,49 @@ not(digit)  // Succeed if next character is not a digit
 val word = rep1(alpha) ~ not(alphanum)  // Match a word not followed by letter or digit
 ```
 
+### Look-Behind Patterns
+
+Look-behind patterns allow checking what precedes the current position without consuming input. These are useful for context-sensitive matching.
+
+```scala
+// Positive look-behind - match if previous element satisfies predicate
+lookBehind(c => c == 'a')  // Match if previous character is 'a'
+
+// Negative look-behind - match if previous element does not satisfy predicate
+notLookBehind(c => c.isDigit)  // Match if previous character is not a digit
+```
+
+Unlike regex look-behind which can check for patterns, these methods check only the single previous element against a predicate.
+
+#### Examples
+
+1. **Enforcing no double punctuation**:
+```scala
+// Ensure no period follows another period
+'.' ~ notLookBehind(_ == '.')
+```
+
+2. **Context-sensitive matching**:
+```scala
+// Match digits only after a letter
+alpha ~ lookBehind(_.isLetter) ~ digit
+```
+
+3. **Word boundaries**:
+```scala
+// Match a letter only if it's preceded by a space (word beginning)
+ws1 ~ lookBehind(_.isWhitespace) ~ alpha ~ rep(alpha)
+```
+
+4. **Syntax highlighting helper**:
+```scala
+// Match an identifier character only if not preceded by another identifier character
+// (useful for finding the start of identifiers)
+alphanum ~ notLookBehind(c => c.isLetterOrDigit || c == '_')
+```
+
+Look-behind is particularly useful for implementing context-sensitive parsers, tokenizers, and lexers where the interpretation of a character depends on what came before it.
+
 ### Recursion and Non-Strict Evaluation
 
 ```scala

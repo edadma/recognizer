@@ -523,7 +523,7 @@ trait Recognizer[W, E] {
     * @return
     *   a pattern that matches if there is a previous element that matches p
     */
-  def lookBehind(p: E => Boolean): Pattern = Clas(input => input.prev.exists(prev => p(prev.elem)))
+  def lookBehind(p: E => Boolean): Pattern = LookBehind(p)
 
   /** Negative look-behind
     *
@@ -532,7 +532,7 @@ trait Recognizer[W, E] {
     * @return
     *   a pattern that matches if there is no previous element that matches p
     */
-  def notLookBehind(p: E => Boolean): Pattern = Clas(input => input.prev.forall(prev => !p(prev.elem)))
+  def notLookBehind(p: E => Boolean): Pattern = NotLookBehind(p)
 
   /** The core pattern type representing a pattern to match.
     */
@@ -572,6 +572,8 @@ trait Recognizer[W, E] {
   protected case class Transform(arity: Int, f: Seq[Any] => Any) extends Pattern
   protected case class NonStrict(p: () => Pattern)               extends Pattern
   protected case class Test(p: List[Any] => Boolean)             extends Pattern
+  protected case class LookBehind(p: E => Boolean)               extends Pattern
+  protected case class NotLookBehind(p: E => Boolean)            extends Pattern
 
   // Backtracking-related types
   protected trait Choice
@@ -725,6 +727,18 @@ trait Recognizer[W, E] {
 
       state.ip match {
         case null => true
+        case LookBehind(p) =>
+          if (state.pointer.prev.exists(prev => p(prev.elem))) {
+            state.advance()
+            run
+          } else if (state.backtrack) run
+          else false
+        case NotLookBehind(p) =>
+          if (state.pointer.prev.forall(prev => !p(prev.elem))) {
+            state.advance()
+            run
+          } else if (state.backtrack) run
+          else false
         case Cut =>
           debug(s"cut")
           while (state.choice.top.isInstanceOf[ChoicePoint]) state.choice.pop()
