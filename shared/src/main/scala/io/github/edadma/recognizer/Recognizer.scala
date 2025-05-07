@@ -516,6 +516,24 @@ trait Recognizer[W, E] {
     f(a.asInstanceOf[A], b.asInstanceOf[B], c.asInstanceOf[C], d.asInstanceOf[D])
   }
 
+  /** Positive look-behind
+    *
+    * @param p
+    *   the predicate
+    * @return
+    *   a pattern that matches if there is a previous element that matches p
+    */
+  def lookBehind(p: E => Boolean): Pattern = Clas(input => input.prev.exists(prev => p(prev.elem)))
+
+  /** Negative look-behind
+    *
+    * @param p
+    *   the predicate
+    * @return
+    *   a pattern that matches if there is no previous element that matches p
+    */
+  def notLookBehind(p: E => Boolean): Pattern = Clas(input => input.prev.forall(prev => !p(prev.elem)))
+
   /** The core pattern type representing a pattern to match.
     */
   trait Pattern {

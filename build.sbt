@@ -1,17 +1,13 @@
-import sbt.url
-
-import scala.collection.Seq
-
-ThisBuild / licenses += "ISC" -> url("https://opensource.org/licenses/ISC")
-ThisBuild / versionScheme := Some("semver-spec")
-ThisBuild / evictionErrorLevel := Level.Warn
-ThisBuild / scalaVersion := "3.6.4"
-ThisBuild / organization := "io.github.edadma"
-ThisBuild / organizationName := "edadma"
-ThisBuild / organizationHomepage := Some(url("https://github.com/edadma"))
-ThisBuild / version := "0.0.1"
+ThisBuild / licenses += "ISC"      -> url("https://opensource.org/licenses/ISC")
+ThisBuild / versionScheme          := Some("semver-spec")
+ThisBuild / evictionErrorLevel     := Level.Warn
+ThisBuild / scalaVersion           := "3.6.4"
+ThisBuild / organization           := "io.github.edadma"
+ThisBuild / organizationName       := "edadma"
+ThisBuild / organizationHomepage   := Some(url("https://github.com/edadma"))
+ThisBuild / version                := "0.0.2"
 ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
-ThisBuild / sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
+ThisBuild / sonatypeRepository     := "https://s01.oss.sonatype.org/service/local"
 
 ThisBuild / publishConfiguration := publishConfiguration.value.withOverwrite(true).withChecksums(Vector.empty)
 ThisBuild / resolvers ++= Seq(Resolver.mavenLocal)
@@ -49,8 +45,8 @@ publish / skip := true
 lazy val recognizer = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("."))
   .settings(
-    name := "recognizer",
-    version := "0.0.1",
+    name         := "recognizer",
+    version      := "0.0.1",
     scalaVersion := "3.6.4",
     scalacOptions ++=
       Seq(
@@ -62,15 +58,15 @@ lazy val recognizer = crossProject(JSPlatform, JVMPlatform, NativePlatform)
         "-language:existentials",
         "-language:dynamics",
       ),
-    organization := "io.github.edadma",
+    organization                            := "io.github.edadma",
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.19" % "test",
-    publishMavenStyle := true,
-    Test / publishArtifact := false,
-    licenses += "ISC" -> url("https://opensource.org/licenses/ISC"),
+    publishMavenStyle                       := true,
+    Test / publishArtifact                  := false,
+    licenses += "ISC"                       -> url("https://opensource.org/licenses/ISC"),
   )
   .jvmSettings(
     libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided",
-    libraryDependencies += "com.lihaoyi" %%% "pprint" % "0.9.0" % "test",
+    libraryDependencies += "com.lihaoyi" %%% "pprint"        % "0.9.0" % "test",
   )
   .nativeSettings(
     libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided",
@@ -81,5 +77,5 @@ lazy val recognizer = crossProject(JSPlatform, JVMPlatform, NativePlatform)
 //    Test / scalaJSUseTestModuleInitializer := false,
     Test / scalaJSUseMainModuleInitializer := false,
     Test / scalaJSUseTestModuleInitializer := true,
-    scalaJSUseMainModuleInitializer := true,
+    scalaJSUseMainModuleInitializer        := true,
   )

@@ -9,8 +9,10 @@ package io.github.edadma.recognizer
   *   the string to process
   * @param idx
   *   the current position in the string (0-based index)
+  * @param prev
+  *   the previous StringInput position, if any
   */
-case class StringInput(s: String, idx: Int = 0) extends Input[Char, Char] {
+case class StringInput(s: String, idx: Int = 0, prev: Option[StringInput] = None) extends Input[Char, Char] {
 
   /** Checks if the current position is at the end of input.
     *
@@ -38,5 +40,5 @@ case class StringInput(s: String, idx: Int = 0) extends Input[Char, Char] {
     * @return
     *   a new StringInput with index incremented by 1
     */
-  def next: StringInput = StringInput(s, idx + 1)
+  def next: StringInput = StringInput(s, idx + 1, Some(this))
 }

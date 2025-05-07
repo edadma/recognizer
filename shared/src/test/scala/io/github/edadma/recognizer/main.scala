@@ -15,14 +15,14 @@ object IntExample extends TestingInt {
   }
 }
 
-case class IntListInput(xs: List[Int], idx: Int = 0) extends Input[Int, Int] {
-  def eoi: Boolean = idx >= xs.length
-  def elem: Int = xs(idx)
-  def wrapped: Int = xs(idx)
-  def next: IntListInput = copy(idx = idx + 1)
+case class IntListInput(xs: List[Int], idx: Int = 0, prev: Option[IntListInput] = None) extends Input[Int, Int] {
+  def eoi: Boolean       = idx >= xs.length
+  def elem: Int          = xs(idx)
+  def wrapped: Int       = xs(idx)
+  def next: IntListInput = copy(idx = idx + 1, prev = Some(this))
   override def equals(obj: Any) = obj match {
-    case IntListInput(ys, j) => xs == ys && idx == j
-    case _                   => false
+    case IntListInput(ys, j, _) => xs == ys && idx == j
+    case _                      => false
   }
 }
 

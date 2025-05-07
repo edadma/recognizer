@@ -35,6 +35,13 @@ trait Input[W, E] {
     */
   def wrapped: W
 
+  /** Returns the previous Input representing the position before the current one.
+    *
+    * @return
+    *   the previous position in the input stream
+    */
+  def prev: Option[Input[W, E]]
+
   /** Returns a new Input representing the position after the current one.
     *
     * @return
@@ -49,7 +56,7 @@ trait Input[W, E] {
     */
   def rest: List[E] = {
     val buf = new ListBuffer[E]
-    var e = this
+    var e   = this
 
     while (!e.eoi) {
       buf += e.elem
@@ -70,7 +77,7 @@ trait Input[W, E] {
     */
   def listElem(end: Input[W, E]): List[E] = {
     val buf = new ListBuffer[E]
-    var e = this
+    var e   = this
 
     while (!e.eoi && e != end) {
       buf += e.elem
@@ -92,7 +99,7 @@ trait Input[W, E] {
     */
   def listWrapped(end: Input[W, E]): List[W] = {
     val buf = new ListBuffer[W]
-    var e = this
+    var e   = this
 
     while (!e.eoi && e != end) {
       buf += e.wrapped

@@ -26,3 +26,4 @@ plugins.sbt
 # docs
 ./
 README.md
+guide.md
