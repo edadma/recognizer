@@ -25,15 +25,16 @@ Complete API documentation is available at:
 Add the following to your `build.sbt`:
 
 ```scala
-libraryDependencies += "io.github.edadma" %%% "recognizer" % "0.0.1"
+libraryDependencies += "io.github.edadma" %%% "recognizer" % "0.0.3"
 ```
 
 For cross-platform projects, ensure your `project/plugins.sbt` includes:
 
 ```scala
-addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.3.2")
+addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject"      % "1.3.2")
 addSbtPlugin("org.portable-scala" % "sbt-scala-native-crossproject" % "1.3.2")
-addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.5.7")
+addSbtPlugin("org.scala-js"       % "sbt-scalajs"                   % "1.19.0")
+addSbtPlugin("org.scala-native"   % "sbt-scala-native"              % "0.5.7")
 ```
 
 ## Quickstart
